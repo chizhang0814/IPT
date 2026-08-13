@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>电气接口本体与图谱浏览器</title>
+<style>
+:root{
+  --bg:#F5F4F1; --surface:#FFFFFF; --ink:#20242A; --muted:#5D6673; --line:#E4E2DC;
+  --accent:#B4551D; --accent-ink:#8A3E12; --chip-bg:#F0EEE9; --code-bg:#F0EEE9;
+  --c-prod:#3E6FA6; --c-proc:#B4551D; --c-rule:#7E58AF;
+  --c-prod-bg:#EAF0F7; --c-proc-bg:#F7EDE5; --c-rule-bg:#F0EBF7;
+  --shadow:0 1px 3px rgba(32,36,42,.06);
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#15171B; --surface:#1E2126; --ink:#E9E7E2; --muted:#9AA1AB; --line:#2D3138;
+  --accent:#D9702E; --accent-ink:#E8935B; --chip-bg:#282C33; --code-bg:#282C33;
+  --c-prod:#4E8BD9; --c-proc:#D9702E; --c-rule:#9B7BD1;
+  --c-prod-bg:#203043; --c-proc-bg:#3A2A1E; --c-rule-bg:#2E2740;
+  --shadow:none;
+}}
+:root[data-theme="dark"]{
+  --bg:#15171B; --surface:#1E2126; --ink:#E9E7E2; --muted:#9AA1AB; --line:#2D3138;
+  --accent:#D9702E; --accent-ink:#E8935B; --chip-bg:#282C33; --code-bg:#282C33;
+  --c-prod:#4E8BD9; --c-proc:#D9702E; --c-rule:#9B7BD1;
+  --c-prod-bg:#203043; --c-proc-bg:#3A2A1E; --c-rule-bg:#2E2740;
+  --shadow:none;
+}
+:root[data-theme="light"]{
+  --bg:#F5F4F1; --surface:#FFFFFF; --ink:#20242A; --muted:#5D6673; --line:#E4E2DC;
+  --accent:#B4551D; --accent-ink:#8A3E12; --chip-bg:#F0EEE9; --code-bg:#F0EEE9;
+  --c-prod:#3E6FA6; --c-proc:#B4551D; --c-rule:#7E58AF;
+  --c-prod-bg:#EAF0F7; --c-proc-bg:#F7EDE5; --c-rule-bg:#F0EBF7;
+  --shadow:0 1px 3px rgba(32,36,42,.06);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.75 "PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Source Han Sans SC",system-ui,sans-serif;}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;font-variant-numeric:tabular-nums;}
+.wrap{max-width:1060px;margin:0 auto;padding:40px 24px 80px;}
+.eyebrow{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;}
+h1{font-size:26px;line-height:1.35;margin:6px 0 10px;font-weight:800;text-wrap:balance;}
+.hero-sub{color:var(--muted);font-size:14px;max-width:52em;}
+section{margin-top:52px;}
+h2{font-size:20px;font-weight:700;margin:6px 0 4px;}
+.sec-note{color:var(--muted);font-size:13.5px;margin:0 0 18px;max-width:48em;}
+code,.code{font-family:ui-monospace,Consolas,monospace;background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:12.5px;}
+pre.code{display:block;padding:12px 16px;border-radius:8px;overflow-x:auto;line-height:1.7;font-size:12.5px;margin:8px 0 0;}
+/* 查看方式表 */
+table{border-collapse:collapse;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13.5px;}
+th,td{text-align:left;padding:9px 14px;border-top:1px solid var(--line);vertical-align:top;}
+thead th{border-top:none;background:var(--chip-bg);font-size:12.5px;color:var(--muted);font-weight:650;}
+.table-scroll{overflow-x:auto;border-radius:10px;}
+td .mono{font-size:12px;}
+/* 本体分层地图 */
+.layer-map{display:grid;gap:14px;}
+.lm{border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden;}
+.lm-head{padding:10px 18px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;}
+.lm-head .nm{font-weight:750;font-size:15px;}
+.lm-head .d{color:var(--muted);font-size:12.5px;flex:1;min-width:16em;}
+.lm.prod .lm-head{background:var(--c-prod-bg);} .lm.prod .nm{color:var(--c-prod);}
+.lm.rule .lm-head{background:var(--c-rule-bg);} .lm.rule .nm{color:var(--c-rule);}
+.lm.proc .lm-head{background:var(--c-proc-bg);} .lm.proc .nm{color:var(--c-proc);}
+.cls{display:flex;flex-wrap:wrap;gap:8px;padding:14px 18px;}
+.cl{border:1px solid var(--line);border-radius:8px;padding:6px 12px;background:var(--bg);font-size:13px;line-height:1.5;}
+.cl b{font-weight:650;}
+.cl .n{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--muted);display:block;}
+.cl.hero{border-color:currentColor;}
+.lm.prod .cl.hero{color:var(--c-prod);} .lm.rule .cl.hero{color:var(--c-rule);} .lm.proc .cl.hero{color:var(--c-proc);}
+.cl.hero b,.cl.hero .n{color:inherit;}
+/* 关系分组 */
+.rel-groups{display:grid;gap:12px;}
+.rg{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;box-shadow:var(--shadow);}
+.rg h3{font-size:14.5px;font-weight:750;margin:0 0 2px;}
+.rg .d{font-size:12.5px;color:var(--muted);margin-bottom:8px;}
+.rel{display:grid;grid-template-columns:minmax(9em,12em) 1fr 5.5em;gap:8px;padding:5px 0;border-top:1px dashed var(--line);font-size:13px;align-items:baseline;}
+.rel .rt{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--accent-ink);}
+.rel .ft{color:var(--ink);}
+.rel .ft .t{padding:1px 7px;border-radius:5px;font-size:12px;font-weight:600;}
+.t.prod{background:var(--c-prod-bg);color:var(--c-prod);} .t.rule{background:var(--c-rule-bg);color:var(--c-rule);} .t.proc{background:var(--c-proc-bg);color:var(--c-proc);}
+.rel .n{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);text-align:right;}
+/* 节点样例卡 */
+.nodes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;}
+.nd{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
+.nd-head{padding:8px 16px;font-size:13px;font-weight:650;display:flex;gap:8px;align-items:baseline;}
+.nd-head .t{font-size:11.5px;padding:2px 8px;border-radius:5px;font-weight:700;}
+.nd pre{margin:0;padding:12px 16px;font-family:ui-monospace,Consolas,monospace;font-size:11.8px;line-height:1.75;overflow-x:auto;color:var(--ink);background:transparent;}
+.nd pre .k{color:var(--muted);} .nd pre .v{color:var(--accent-ink);}
+.nd .note{padding:0 16px 12px;font-size:12.5px;color:var(--muted);}
+/* 链路走查 */
+.chain{position:relative;list-style:none;margin:0;padding:0;}
+.chain li{position:relative;padding:0 0 0 26px;}
+.chain li::before{content:"";position:absolute;left:7px;top:0;bottom:0;width:2px;background:var(--line);}
+.chain li:first-child::before{top:14px;} .chain li:last-child::before{bottom:auto;height:14px;}
+.chain .nub{position:absolute;left:2px;top:10px;width:12px;height:12px;border-radius:50%;border:2px solid var(--muted);background:var(--bg);z-index:1;}
+.chain li.prod .nub{border-color:var(--c-prod);background:var(--c-prod);}
+.chain li.rule .nub{border-color:var(--c-rule);background:var(--c-rule);}
+.chain li.rel-row .nub{display:none;}
+.chain .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 16px;margin:2px 0;box-shadow:var(--shadow);
+  display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;}
+.chain .t{font-size:11.5px;padding:2px 8px;border-radius:5px;font-weight:700;white-space:nowrap;}
+.chain .lb{font-weight:650;font-size:14px;}
+.chain .dt{color:var(--muted);font-size:12.5px;}
+.chain .rel-cap{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--muted);padding:2px 0 2px 0;display:block;}
+.chain .rel-cap b{color:var(--accent-ink);font-weight:700;}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:0 28px;}
+.callout{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-top:16px;box-shadow:var(--shadow);font-size:13.5px;}
+.callout b{font-weight:650;}
+footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">EICD Agent · 本体与图谱浏览器</div>
+  <h1>本体是什么、图谱里存了什么、一条真实链路怎么走</h1>
+  <p class="hero-sub">数据全部来自 <span class="mono">graph/nodes.jsonl</span>（210,640 节点）与 <span class="mono">edges.jsonl</span>（401,938 关系），脱敏后真实样例，非示意编造。更新于 2026-08-13。</p>
+</header>
+
+<section>
+  <div class="eyebrow">01 · 怎么查看</div>
+  <h2>四个文件，三种打开方式</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th>文件</th><th>是什么</th><th>怎么看</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">ontology\ontology.md</td><td>本体人读版：22 类、28 种关系的定义与图示</td><td>VSCode 打开按 <code>Ctrl+Shift+V</code> 预览（mermaid 图直接渲染），或用 Typora</td></tr>
+      <tr><td class="mono">ontology\ontology.yaml</td><td>本体机器读版：每类的源表/源列映射，ETL 与 MCP 共用</td><td>任意文本编辑器</td></tr>
+      <tr><td class="mono">graph\nodes.jsonl<br>graph\edges.jsonl</td><td>图谱本体数据：每行一个 JSON（节点 60MB / 关系 29MB）</td><td>别用记事本硬开——用下面的命令抽查，或等 W2 的 MCP 工具直接问</td></tr>
+      <tr><td class="mono">graph\stats.md</td><td>分类型统计汇总（汇报用数字都在这）</td><td>任意 Markdown 阅读器</td></tr>
+    </tbody>
+  </table></div>
+  <pre class="code"># 在 D:\Downloads\IPT 下，PowerShell 抽查示例
+Get-Content graph\nodes.jsonl -TotalCount 5              # 看前 5 个节点
+Select-String '"type": "Device"' graph\nodes.jsonl | Select-Object -First 3   # 抽 3 个设备节点
+python -c "import json;[print(json.loads(l)['label']) for l in open('graph/nodes.jsonl',encoding='utf-8') if '\"Harness\"' in l]"  # 列出全部线束</pre>
+</section>
+
+<section>
+  <div class="eyebrow">02 · 本体地图</div>
+  <h2>三层 22 类（括号内为图谱中的真实节点数）</h2>
+  <p class="sec-note">本体不是发明出来的，是对已运行数据库 schema 的翻译——每个类都有源表，每个数字都可复查。加框的类是各层的骨干。</p>
+  <div class="layer-map">
+    <div class="lm prod">
+      <div class="lm-head"><span class="nm">产品定义层 · 16 类</span><span class="d">电气接口的物理与逻辑事实：谁、装在哪、通过什么针孔、连了什么信号、用哪根线实现</span></div>
+      <div class="cls">
+        <span class="cl">型号项目<span class="n">Project · 6</span></span>
+        <span class="cl">机上区域<span class="n">Region · 12</span></span>
+        <span class="cl">分区<span class="n">Subregion · 42</span></span>
+        <span class="cl">电气设计区<span class="n">EDZ · 39</span></span>
+        <span class="cl">ATA 章<span class="n">ATAChapter · 18</span></span>
+        <span class="cl">ATA 子系统<span class="n">ATASubsystem · 102</span></span>
+        <span class="cl hero"><b>设备</b><span class="n">Device · 1,851</span></span>
+        <span class="cl hero"><b>连接器</b><span class="n">Connector · 4,539</span></span>
+        <span class="cl hero"><b>针孔</b><span class="n">Pin · 41,786</span></span>
+        <span class="cl hero"><b>信号</b><span class="n">Signal · 18,445</span></span>
+        <span class="cl hero"><b>信号端点</b><span class="n">SignalEndpoint · 40,270</span></span>
+        <span class="cl">信号分组<span class="n">SignalGroup · 1,733</span></span>
+        <span class="cl hero"><b>导线</b><span class="n">Wire · 1,899</span></span>
+        <span class="cl">线束<span class="n">Harness · 67</span></span>
+        <span class="cl hero"><b>互联点</b><span class="n">Interconnect · 171</span></span>
+        <span class="cl">互联点针孔<span class="n">InterconnectPin · 6,996</span></span>
+      </div>
+    </div>
+    <div class="lm rule">
+      <div class="lm-head"><span class="nm">规则层 · 5 类</span><span class="d">约束知识：连接器型谱几何、标准触件、电源代码、接地类别、信号分组组建规则</span></div>
+      <div class="cls">
+        <span class="cl hero"><b>连接器型谱</b><span class="n">Arrangement · 204</span></span>
+        <span class="cl">型谱针位<span class="n">ArrangementPosition · 4,287</span></span>
+        <span class="cl">独立电源代码<span class="n">PowerSource · 40</span></span>
+        <span class="cl">接地类别<span class="n">GroundClass · 9</span></span>
+        <span class="cl">分组规则<span class="n">SignalGroupType · 100</span></span>
+      </div>
+    </div>
+    <div class="lm proc">
+      <div class="lm-head"><span class="nm">过程层 · 3 类</span><span class="d">研制过程留痕：谁在什么时候改了什么、经谁批准——证据溯源 Skill 的底料</span></div>
+      <div class="cls">
+        <span class="cl hero"><b>变更事件</b><span class="n">ChangeEvent · 81,093</span></span>
+        <span class="cl">审批事件<span class="n">ApprovalEvent · 6,798</span></span>
+        <span class="cl">人员（假名）<span class="n">Person · 133</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">03 · 关系清单</div>
+  <h2>32 种关系，按五个语义组理解（括号内为真实条数）</h2>
+  <p class="sec-note">读法示例：设备 <span class="mono">HAS_CONNECTOR</span> 连接器，共 4,539 条——即每台设备拥有哪些连接器的事实有 4,539 条。</p>
+  <div class="rel-groups">
+    <div class="rg"><h3>① 结构组成 — 东西装在哪、由什么构成</h3><div class="d">支撑：S01 定义问答、S02 规范问答</div>
+      <div class="rel"><span class="rt">HAS_DEVICE</span><span class="ft"><span class="t prod">型号</span> 拥有 <span class="t prod">设备</span></span><span class="n">1,851</span></div>
+      <div class="rel"><span class="rt">HAS_CONNECTOR</span><span class="ft"><span class="t prod">设备</span> 拥有 <span class="t prod">连接器</span></span><span class="n">4,539</span></div>
+      <div class="rel"><span class="rt">HAS_PIN</span><span class="ft"><span class="t prod">连接器</span> 包含 <span class="t prod">针孔</span></span><span class="n">41,786</span></div>
+      <div class="rel"><span class="rt">HAS_ICPIN</span><span class="ft"><span class="t prod">互联点</span> 含针孔 <span class="t prod">互联点针孔</span></span><span class="n">6,996</span></div>
+      <div class="rel"><span class="rt">BELONGS_TO_SYSTEM</span><span class="ft"><span class="t prod">设备</span> 属于 <span class="t prod">ATA 子系统</span></span><span class="n">1,821</span></div>
+      <div class="rel"><span class="rt">PART_OF_CHAPTER</span><span class="ft"><span class="t prod">ATA 子系统</span> 隶属 <span class="t prod">ATA 章</span></span><span class="n">1,821</span></div>
+      <div class="rel"><span class="rt">LOCATED_IN_EDZ</span><span class="ft"><span class="t prod">设备</span> 位于 <span class="t prod">电气设计区</span></span><span class="n">539</span></div>
+      <div class="rel"><span class="rt">IC_IN_EDZ</span><span class="ft"><span class="t prod">互联点</span> 属区 <span class="t prod">电气设计区</span></span><span class="n">3</span></div>
+      <div class="rel"><span class="rt">HAS_SUBREGION</span><span class="ft"><span class="t prod">区域</span> 含分区 <span class="t prod">分区</span></span><span class="n">42</span></div>
+      <div class="rel"><span class="rt">HARNESS_OF</span><span class="ft"><span class="t prod">线束</span> 属于 <span class="t prod">型号</span></span><span class="n">67</span></div>
+    </div>
+    <div class="rg"><h3>② 信号逻辑 — 谁和谁"应该"连（EICD 定义）</h3><div class="d">支撑：S03 链路追踪、S04 变更影响的逻辑侧</div>
+      <div class="rel"><span class="rt">HAS_ENDPOINT</span><span class="ft"><span class="t prod">信号</span> 拥有端点 <span class="t prod">信号端点</span></span><span class="n">40,270</span></div>
+      <div class="rel"><span class="rt">AT_DEVICE</span><span class="ft"><span class="t prod">端点</span> 落于 <span class="t prod">设备</span></span><span class="n">40,270</span></div>
+      <div class="rel"><span class="rt">AT_PIN</span><span class="ft"><span class="t prod">端点</span> 落于 <span class="t prod">针孔</span></span><span class="n">40,269</span></div>
+      <div class="rel"><span class="rt">SIGNAL_EDGE</span><span class="ft"><span class="t prod">端点</span> 逻辑连接 <span class="t prod">端点</span></span><span class="n">23,864</span></div>
+      <div class="rel"><span class="rt">SIGNAL_OF_SYSTEM</span><span class="ft"><span class="t prod">信号</span> 归属 <span class="t prod">ATA 子系统</span></span><span class="n">18,238</span></div>
+      <div class="rel"><span class="rt">IN_GROUP</span><span class="ft"><span class="t prod">信号</span> 归入 <span class="t prod">信号分组</span></span><span class="n">4,591</span></div>
+    </div>
+    <div class="rg"><h3>③ 物理实现 — 实际"怎么"连（线束真值）</h3><div class="d">支撑：S03 物理侧、S09 逻辑-物理对齐核查</div>
+      <div class="rel"><span class="rt">IMPLEMENTS</span><span class="ft"><span class="t prod">导线</span> 物理实现 <span class="t prod">信号</span></span><span class="n">1,702</span></div>
+      <div class="rel"><span class="rt">END_AT_PIN</span><span class="ft"><span class="t prod">导线</span> 端接于 <span class="t prod">针孔</span></span><span class="n">1,466</span></div>
+      <div class="rel"><span class="rt">END_AT_ICPIN</span><span class="ft"><span class="t prod">导线</span> 端接于 <span class="t prod">互联点针孔</span></span><span class="n">1,666</span></div>
+      <div class="rel"><span class="rt">THROUGH_PAIR</span><span class="ft"><span class="t prod">互联点针孔</span> R/P 面贯通 <span class="t prod">互联点针孔</span></span><span class="n">3,433</span></div>
+      <div class="rel"><span class="rt">IN_HARNESS</span><span class="ft"><span class="t prod">导线</span> 归属 <span class="t prod">线束</span></span><span class="n">1,899</span></div>
+    </div>
+    <div class="rg"><h3>④ 规则约束 — 事实必须服从的规范</h3><div class="d">支撑：S05 故障排查、S06 接地分析、S08 质量体检</div>
+      <div class="rel"><span class="rt">POWERED_BY</span><span class="ft"><span class="t prod">信号</span> 由电源供电 <span class="t rule">电源代码</span></span><span class="n">18,443</span></div>
+      <div class="rel"><span class="rt">GROUNDED_AS</span><span class="ft"><span class="t prod">信号</span> 接地类别为 <span class="t rule">接地类别</span></span><span class="n">3,336</span></div>
+      <div class="rel"><span class="rt">IC_GROUND_CLASS</span><span class="ft"><span class="t prod">互联点</span> 接地类别为 <span class="t rule">接地类别</span></span><span class="n">22</span></div>
+      <div class="rel"><span class="rt">USES_ARRANGEMENT</span><span class="ft"><span class="t prod">互联点</span> 采用型谱 <span class="t rule">连接器型谱</span></span><span class="n">36</span></div>
+      <div class="rel"><span class="rt">HAS_POSITION</span><span class="ft"><span class="t rule">型谱</span> 含针位 <span class="t rule">型谱针位</span></span><span class="n">4,287</span></div>
+      <div class="rel"><span class="rt">GROUP_RULE</span><span class="ft"><span class="t prod">信号分组</span> 遵循 <span class="t rule">分组规则</span></span><span class="n">1,733</span></div>
+    </div>
+    <div class="rg"><h3>⑤ 过程留痕 — 谁改的、谁批的、谁负责</h3><div class="d">支撑：S04 责任人定位、S10 证据溯源与报告</div>
+      <div class="rel"><span class="rt">CHANGED</span><span class="ft"><span class="t proc">变更事件</span> 变更了 <span class="t prod">设备/信号/针孔…</span></span><span class="n">43,348</span></div>
+      <div class="rel"><span class="rt">CHANGED_BY</span><span class="ft"><span class="t proc">变更事件</span> 操作人 <span class="t proc">人员</span></span><span class="n">81,093</span></div>
+      <div class="rel"><span class="rt">APPROVAL_FOR</span><span class="ft"><span class="t proc">审批事件</span> 针对 <span class="t prod">设备/信号…</span></span><span class="n">6,029</span></div>
+      <div class="rel"><span class="rt">REQUESTED_BY</span><span class="ft"><span class="t proc">审批事件</span> 发起人 <span class="t proc">人员</span></span><span class="n">5,916</span></div>
+      <div class="rel"><span class="rt">RESPONSIBLE_FOR</span><span class="ft"><span class="t proc">人员</span> 负责 <span class="t prod">设备</span></span><span class="n">562</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">04 · 节点长什么样</div>
+  <h2>jsonl 里的真实节点（脱敏后原样摘录）</h2>
+  <p class="sec-note">每个节点五个部分：<b>id</b>（全局唯一）、<b>type</b>（本体类）、<b>label</b>（显示名）、<b>props</b>（业务属性，中文列名与平台一致）、<b>source_table / source_id</b>（回溯键——答案可定位到数据库行）。</p>
+  <div class="nodes">
+    <div class="nd">
+      <div class="nd-head"><span class="t prod">Device 设备</span><span class="mono">device:1</span></div>
+      <pre>{
+  <span class="k">"id"</span>: <span class="v">"device:1"</span>,
+  <span class="k">"type"</span>: <span class="v">"Device"</span>,
+  <span class="k">"label"</span>: <span class="v">"U-2504"</span>,
+  <span class="k">"props"</span>: {
+    <span class="k">"设备中文名称"</span>: <span class="v">"推力手柄"</span>,
+    <span class="k">"设备英文缩写"</span>: <span class="v">"TCQ"</span>,
+    <span class="k">"设备DAL"</span>: <span class="v">"A"</span>,
+    <span class="k">"设备安装位置"</span>: <span class="v">"驾驶舱-控制面板"</span>,
+    <span class="k">"设备壳体接地方式"</span>: <span class="v">"面搭接"</span>,
+    <span class="k">"设备正常工作电压范围（V）"</span>: <span class="v">"0-28V"</span>, …
+  },
+  <span class="k">"source_table"</span>: <span class="v">"devices"</span>, <span class="k">"source_id"</span>: <span class="v">1</span>
+}</pre>
+      <div class="nd-note note">DAL A 级的驾驶舱推力手柄——设备节点带全部电气特性属性。</div>
+    </div>
+    <div class="nd">
+      <div class="nd-head"><span class="t proc">ChangeEvent 变更</span><span class="mono">chg:1</span></div>
+      <pre>{
+  <span class="k">"id"</span>: <span class="v">"chg:1"</span>,
+  <span class="k">"type"</span>: <span class="v">"ChangeEvent"</span>,
+  <span class="k">"props"</span>: {
+    <span class="k">"entity_table"</span>: <span class="v">"devices"</span>,
+    <span class="k">"entity_id"</span>: <span class="v">563</span>,
+    <span class="k">"reason"</span>: <span class="v">"修改设备"</span>,
+    <span class="k">"status"</span>: <span class="v">"approved"</span>,
+    <span class="k">"created_at"</span>: <span class="v">"2026-02-22 03:19:27"</span>
+  },
+  <span class="k">"source_table"</span>: <span class="v">"change_logs"</span>, <span class="k">"source_id"</span>: <span class="v">1</span>
+}</pre>
+      <div class="nd-note note">过程层节点：哪张表的哪一行、何时、为何被改、批没批——81,093 条全部入图。</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">05 · 链路走查</div>
+  <h2>一条真实信号的两条腿：逻辑定义 vs 物理实现</h2>
+  <p class="sec-note">信号 <span class="mono">N240279-340014</span>（EDP_LOAD_28_J4_05）：应急配电盘箱给 2 号甚高频通信导航设备供 28V 电。左边是 EICD"应该怎么连"，右边是线束真值"实际怎么连"——S03 链路追踪就是把这两条腿拼成一条完整回答，S09 完整性检查就是核对两条腿是否一致。</p>
+  <div class="split">
+    <div>
+      <h3 style="font-size:14px;margin:12px 0 8px;color:var(--muted)">逻辑腿 · EICD 定义（②信号逻辑关系）</h3>
+      <ul class="chain">
+        <li class="prod"><span class="nub"></span><div class="card"><span class="t prod">Device</span><span class="lb">U-2403 应急配电盘箱</span></div>
+          <span class="rel-cap">└ <b>HAS_CONNECTOR</b> → </span></li>
+        <li class="prod"><span class="nub"></span><div class="card"><span class="t prod">Connector</span><span class="lb">2401U2601-J4</span></div>
+          <span class="rel-cap">└ <b>HAS_PIN</b> → </span></li>
+        <li class="prod"><span class="nub"></span><div class="card"><span class="t prod">Pin</span><span class="lb">针孔 E</span><span class="dt">端接尺寸 12#</span></div>
+          <span class="rel-cap">└ <b>AT_PIN</b> ←（端点·输出侧）</span></li>
+        <li class="prod"><span class="nub"></span><div class="card"><span class="t prod">SignalEndpoint</span><span class="lb">EDP_LOAD_28_J4_05</span><span class="dt">output=1</span></div>
+          <span class="rel-cap">└ <b>HAS_ENDPOINT</b> ← 信号 · <b>SIGNAL_EDGE</b> → 对端端点</span></li>
+        <li class="prod"><span class="nub"></span><div class="card"><span class="t prod">SignalEndpoint</span><span class="lb">EDP_LOAD_28_J4_05</span><span class="dt">input=1 · 针孔 3/4</span></div>
+          <span class="rel-cap">└ <b>AT_DEVICE</b> → </span></li>
+        <li class="prod"><span class="nub"></span><div class="card"><span class="t prod">Device</span><span class="lb">2U-341 甚高频通信及无线电导航集成设备 2</span><span class="dt">连接器 3401U3501-M5-J131</span></div></li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="font-size:14px;margin:12px 0 8px;color:var(--muted)">物理腿 · 线束真值（③物理实现关系）</h3>
+      <ul class="chain">
+        <li class="prod"><span class="nub"></span><div class="card"><span class="t prod">Signal</span><span class="lb">N240279-340014</span><span class="dt">28V 供电 · AWG14</span></div>
+          <span class="rel-cap">└ <b>IMPLEMENTS</b> ←（两根导线实现同一信号）</span></li>
+        <li class="prod"><span class="nub"></span><div class="card"><span class="t prod">Wire</span><span class="lb">W3303-34023-14</span><span class="dt">缆号 34023 · 单芯非屏蔽 · AWG14</span></div>
+          <span class="rel-cap">└ <b>END_AT_ICPIN</b> → </span></li>
+        <li class="prod"><span class="nub"></span><div class="card"><span class="t prod">Interconnect</span><span class="lb">D33002-A1 · 针 3</span><span class="dt">分离面（33 区）</span></div>
+          <span class="rel-cap">└ <b>THROUGH_PAIR</b> R 面 ⇄ P 面贯通，跨分离面续接 → </span></li>
+        <li class="prod"><span class="nub"></span><div class="card"><span class="t prod">Interconnect</span><span class="lb">D33004-A2 · 针 3</span><span class="dt">分离面（33 区）</span></div>
+          <span class="rel-cap">└ 对侧导线段继续，直至设备端针孔</span></li>
+        <li class="prod"><span class="nub"></span><div class="card"><span class="t prod">Wire</span><span class="lb">W3303-34024-14</span><span class="dt">第二根 · 走 D33002-A1/D33004-A2 针 4</span></div></li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">
+    <b>这条链路为什么值钱：</b>试验中如果 2U-341 的这路 28V 掉电，S05 故障排查沿物理腿立即给出候选故障点清单——J4 针 E、两处分离面（D33002-A1 / D33004-A2 的针 3、4）、J131 针 3/4、两根 AWG14 导线；再叠加 S08 已知质量隐患（如该链路上的端接尺寸不匹配记录），生成带证据的排查单。人工翻表要半天，图谱遍历是毫秒级。
+  </div>
+</section>
+
+<footer>
+  文件位置：<span class="mono">D:\Downloads\IPT\ontology\</span> 与 <span class="mono">D:\Downloads\IPT\graph\</span>　·　样例均为脱敏后真实数据　·　W2 交付 eicd-graph MCP 后，本页所有查询可用自然语言直接问智能体。
+</footer>
+
+</div>
+
+</html>

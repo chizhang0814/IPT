@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0814 会议 · 交付物展示</title>
+<style>
+:root{
+  --bg:#F5F4F1; --surface:#FFFFFF; --ink:#20242A; --muted:#5D6673; --line:#E4E2DC;
+  --accent:#B4551D; --accent-ink:#8A3E12; --done:#2E7D4F; --chip-bg:#F0EEE9; --code-bg:#F0EEE9;
+  --c-prod:#3E6FA6; --c-proc:#B4551D; --c-rule:#7E58AF; --c-other:#A6ABB3;
+  --c-prod-bg:#EAF0F7; --c-proc-bg:#F7EDE5; --c-rule-bg:#F0EBF7;
+  --shadow:0 1px 3px rgba(32,36,42,.06);
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#15171B; --surface:#1E2126; --ink:#E9E7E2; --muted:#9AA1AB; --line:#2D3138;
+  --accent:#D9702E; --accent-ink:#E8935B; --done:#5CB884; --chip-bg:#282C33; --code-bg:#282C33;
+  --c-prod:#4E8BD9; --c-proc:#D9702E; --c-rule:#9B7BD1; --c-other:#6B717B;
+  --c-prod-bg:#203043; --c-proc-bg:#3A2A1E; --c-rule-bg:#2E2740; --shadow:none;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.75 "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;}
+.mono{font-family:ui-monospace,Consolas,Menlo,monospace;font-variant-numeric:tabular-nums;}
+.wrap{max-width:1060px;margin:0 auto;padding:40px 24px 80px;}
+.eyebrow{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;}
+h1{font-size:25px;line-height:1.35;margin:6px 0 8px;font-weight:800;}
+.hero-sub{color:var(--muted);font-size:14px;max-width:52em;}
+section{margin-top:48px;}
+h2{font-size:19px;font-weight:700;margin:6px 0 4px;}
+h3{font-size:15px;font-weight:700;margin:0 0 8px;}
+.sec-note{color:var(--muted);font-size:13.5px;margin:0 0 16px;max-width:50em;}
+code{font-family:ui-monospace,Consolas,monospace;background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:12px;}
+pre.code{font-family:ui-monospace,Consolas,monospace;display:block;background:var(--code-bg);padding:12px 16px;border-radius:8px;overflow-x:auto;line-height:1.7;font-size:12.5px;margin:8px 0 0;}
+table{border-collapse:collapse;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13.5px;}
+th,td{text-align:left;padding:9px 14px;border-top:1px solid var(--line);vertical-align:top;}
+thead th{border-top:none;background:var(--chip-bg);font-size:12.5px;color:var(--muted);font-weight:650;}
+td.path{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--muted);white-space:nowrap;}
+.table-scroll{overflow-x:auto;border-radius:10px;}
+/* 分层地图 */
+.layer-map{display:grid;gap:14px;}
+.lm{border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden;}
+.lm-head{padding:10px 18px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;}
+.lm-head .nm{font-weight:750;font-size:15px;}
+.lm-head .d{color:var(--muted);font-size:12.5px;flex:1;min-width:16em;}
+.lm.prod .lm-head{background:var(--c-prod-bg);} .lm.prod .nm{color:var(--c-prod);}
+.lm.rule .lm-head{background:var(--c-rule-bg);} .lm.rule .nm{color:var(--c-rule);}
+.lm.proc .lm-head{background:var(--c-proc-bg);} .lm.proc .nm{color:var(--c-proc);}
+.cls{display:flex;flex-wrap:wrap;gap:8px;padding:14px 18px;}
+.cl{border:1px solid var(--line);border-radius:8px;padding:5px 11px;background:var(--bg);font-size:12.5px;line-height:1.5;}
+.cl b{font-weight:650;}
+.cl .n{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--muted);display:block;}
+/* 链路 */
+.chain{position:relative;list-style:none;margin:0;padding:0;}
+.chain li{position:relative;padding:0 0 0 26px;}
+.chain li::before{content:"";position:absolute;left:7px;top:0;bottom:0;width:2px;background:var(--line);}
+.chain li:first-child::before{top:14px;} .chain li:last-child::before{bottom:auto;height:14px;}
+.chain .nub{position:absolute;left:2px;top:10px;width:12px;height:12px;border-radius:50%;border:2px solid var(--c-prod);background:var(--c-prod);z-index:1;}
+.chain .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 16px;margin:2px 0;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;}
+.chain .t{font-size:11.5px;padding:2px 8px;border-radius:5px;font-weight:700;white-space:nowrap;background:var(--c-prod-bg);color:var(--c-prod);}
+.chain .lb{font-weight:650;font-size:14px;}
+.chain .dt{color:var(--muted);font-size:12.5px;}
+.chain .rel-cap{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--muted);display:block;padding:2px 0;}
+.chain .rel-cap b{color:var(--accent-ink);}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:0 28px;}
+.callout{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-top:16px;box-shadow:var(--shadow);font-size:13.5px;}
+/* chart */
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px 14px;box-shadow:var(--shadow);}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:12px;}
+.legend .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;}
+.bar-row{display:grid;grid-template-columns:11em 1fr 6.5em;gap:10px;align-items:center;padding:3px 0;}
+.bar-row .lbl{font-size:12.5px;text-align:right;line-height:1.3;}
+.bar{height:16px;border-radius:0 4px 4px 0;min-width:2px;}
+.bar-row .val{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);}
+footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;}
+.tag{display:inline-block;font-size:11.5px;padding:3px 9px;border-radius:999px;background:var(--chip-bg);color:var(--muted);font-weight:600;margin-left:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">会议展示 · 2026-08-14</div>
+  <h1>W1 交付物展示：东西在哪、怎么打开、现场怎么演示</h1>
+  <p class="hero-sub">全部交付物在 <b class="mono">D:\Downloads\IPT</b>（git 仓库，远程 <span class="mono">github.com/chizhang0814/IPT</span>）。页内数据均为脱敏后真实数据，非示意。</p>
+</header>
+
+<section>
+  <div class="eyebrow">01 · 交付物清单与存储路径</div>
+  <h2>一张表找到所有东西</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th style="width:10em">交付物</th><th>存储路径</th><th>怎么打开</th></tr></thead>
+    <tbody>
+      <tr><td>开发方案 v1.0</td><td class="path">D:\Downloads\IPT\电气接口智能体-开发方案.md</td><td>任意 Markdown 阅读器 / VSCode</td></tr>
+      <tr><td>本体（人读）</td><td class="path">D:\Downloads\IPT\ontology\ontology.md</td><td>VSCode 按 Ctrl+Shift+V 预览（含结构图）</td></tr>
+      <tr><td>本体（机器读）</td><td class="path">D:\Downloads\IPT\ontology\ontology.yaml</td><td>任意文本编辑器；ETL 与 MCP 共用此定义</td></tr>
+      <tr><td>知识图谱 v0</td><td class="path">D:\Downloads\IPT\graph\nodes.jsonl（60MB）<br>D:\Downloads\IPT\graph\edges.jsonl（29MB）</td><td>每行一个 JSON；用下方命令抽查，勿用记事本硬开<span class="tag">生成物，不入 git</span></td></tr>
+      <tr><td>图谱统计</td><td class="path">D:\Downloads\IPT\graph\stats.md</td><td>汇报数字的权威出处（210,640 节点 / 401,938 关系）</td></tr>
+      <tr><td>脱敏管线</td><td class="path">D:\Downloads\IPT\etl\anonymize.py<br>D:\Downloads\IPT\etl\anonymize_config.yaml<br>D:\Downloads\IPT\etl\verify_anonymize.py</td><td>口径全在 yaml 配置里；验证器可现场重跑（约 2 分半）</td></tr>
+      <tr><td>图谱 ETL</td><td class="path">D:\Downloads\IPT\etl\build_graph.py</td><td>确定性可重跑（约 2 分钟）</td></tr>
+      <tr><td>评测集</td><td class="path">D:\Downloads\IPT\eval\generate_eval.py<br>D:\Downloads\IPT\eval\gold\auto_eval_v0.jsonl</td><td>20 条样题；金标 SQL 附在每条里，可当场核对</td></tr>
+      <tr><td>数据快照/脱敏库</td><td class="path">D:\Downloads\IPT\data\eicd_snapshot_20260812.db（187MB）<br>D:\Downloads\IPT\data\eicd_anon.db（123MB）</td><td>SQLite；仅本机保存<span class="tag">不入 git</span></td></tr>
+      <tr><td>脱敏报告/残留清单</td><td class="path">D:\Downloads\IPT\docs\脱敏报告.md<br>D:\Downloads\IPT\docs\脱敏残留清单.md</td><td>保密审查配套材料；残留清单当前为零命中</td></tr>
+      <tr><td>周报 / schema 摸底</td><td class="path">D:\Downloads\IPT\docs\周报\W1-20260812.md<br>D:\Downloads\IPT\docs\schema摸底.md</td><td>过程记录；schema 摸底是本体的依据</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · 现场演示指引</div>
+  <h2>三个 30 秒演示，按说服力排序</h2>
+  <h3>演示 A：图谱是真的——抽查任意节点（10 秒出结果）</h3>
+  <pre class="code"># PowerShell，在 D:\Downloads\IPT 下
+Get-Content graph\stats.md -TotalCount 12                # 权威统计数字
+Select-String '"type": "Device"' graph\nodes.jsonl | Select-Object -First 3   # 抽 3 个设备节点看原文</pre>
+  <h3>演示 B：脱敏是可验证的——现场重跑残留扫描（约 2 分半，适合边讲边跑）</h3>
+  <pre class="code">python etl\verify_anonymize.py
+# 预期输出：probes=286 hits=0（286 个敏感串探针，全库零残留），退出码 0</pre>
+  <h3>演示 C：评测金标是可核对的——打开样题对着念（无需运行）</h3>
+  <pre class="code">Get-Content eval\gold\auto_eval_v0.jsonl -TotalCount 2
+# 每条含 question / gold / gold_sql：答案不是人写的，是 SQL 从库里现算的</pre>
+</section>
+
+<section>
+  <div class="eyebrow">03 · 本体地图</div>
+  <h2>三层 22 类（括号内为图谱真实节点数）</h2>
+  <div class="layer-map">
+    <div class="lm prod">
+      <div class="lm-head"><span class="nm">产品定义层 · 16 类</span><span class="d">谁、装在哪、通过什么针孔、应该连什么信号、实际用哪根线连</span></div>
+      <div class="cls">
+        <span class="cl">型号<span class="n">6</span></span><span class="cl">区域<span class="n">12</span></span><span class="cl">分区<span class="n">42</span></span><span class="cl">电气设计区<span class="n">39</span></span><span class="cl">ATA章<span class="n">18</span></span><span class="cl">ATA子系统<span class="n">102</span></span>
+        <span class="cl"><b>设备</b><span class="n">1,851</span></span><span class="cl"><b>连接器</b><span class="n">4,539</span></span><span class="cl"><b>针孔</b><span class="n">41,786</span></span>
+        <span class="cl"><b>信号</b><span class="n">18,445</span></span><span class="cl"><b>信号端点</b><span class="n">40,270</span></span><span class="cl">信号分组<span class="n">1,733</span></span>
+        <span class="cl"><b>导线</b><span class="n">1,899</span></span><span class="cl">线束<span class="n">67</span></span><span class="cl"><b>互联点</b><span class="n">171</span></span><span class="cl">互联点针孔<span class="n">6,996</span></span>
+      </div>
+    </div>
+    <div class="lm rule">
+      <div class="lm-head"><span class="nm">规则层 · 5 类</span><span class="d">事实必须服从的规范：型谱几何、触件、电源、接地、分组规则</span></div>
+      <div class="cls">
+        <span class="cl"><b>连接器型谱</b><span class="n">204</span></span><span class="cl">型谱针位<span class="n">4,287</span></span><span class="cl">电源代码<span class="n">40</span></span><span class="cl">接地类别<span class="n">9</span></span><span class="cl">分组规则<span class="n">100</span></span>
+      </div>
+    </div>
+    <div class="lm proc">
+      <div class="lm-head"><span class="nm">过程层 · 3 类</span><span class="d">谁改的、谁批的、谁负责——证据溯源的底料</span></div>
+      <div class="cls">
+        <span class="cl"><b>变更事件</b><span class="n">81,093</span></span><span class="cl">审批事件<span class="n">6,798</span></span><span class="cl">人员（假名）<span class="n">133</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">04 · 图谱构成</div>
+  <h2>210,640 个节点由什么组成</h2>
+  <div class="chart">
+    <div class="legend">
+      <span><span class="sw" style="background:var(--c-prod)"></span>产品定义层</span>
+      <span><span class="sw" style="background:var(--c-proc)"></span>过程层</span>
+      <span><span class="sw" style="background:var(--c-rule)"></span>规则层</span>
+      <span><span class="sw" style="background:var(--c-other)"></span>其他 13 类合计</span>
+    </div>
+    <div id="bars"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">05 · 镇场演示：一条真实链路</div>
+  <h2>应急配电盘箱给甚高频通信设备供的一路 28V 电</h2>
+  <p class="sec-note">信号 <span class="mono">N240279-340014</span>（EDP_LOAD_28_J4_05）。左边是 EICD 定义的"应该怎么连"，右边是线束真值的"实际怎么连"——8/25 交付的 S03 链路追踪就是把两条腿拼成一个回答，S09 完整性检查就是核对两条腿是否一致。</p>
+  <div class="split">
+    <div>
+      <h3 style="color:var(--muted)">逻辑腿 · EICD 定义</h3>
+      <ul class="chain">
+        <li><span class="nub"></span><div class="card"><span class="t">Device</span><span class="lb">U-2403 应急配电盘箱</span></div><span class="rel-cap">└ <b>HAS_CONNECTOR</b> →</span></li>
+        <li><span class="nub"></span><div class="card"><span class="t">Connector</span><span class="lb">2401U2601-J4</span></div><span class="rel-cap">└ <b>HAS_PIN</b> →</span></li>
+        <li><span class="nub"></span><div class="card"><span class="t">Pin</span><span class="lb">针孔 E</span><span class="dt">端接尺寸 12#</span></div><span class="rel-cap">└ <b>AT_PIN</b> ←（端点·输出侧）</span></li>
+        <li><span class="nub"></span><div class="card"><span class="t">SignalEndpoint</span><span class="lb">EDP_LOAD_28_J4_05</span><span class="dt">output=1</span></div><span class="rel-cap">└ <b>SIGNAL_EDGE</b> → 对端端点（input=1，针 3/4）</span></li>
+        <li><span class="nub"></span><div class="card"><span class="t">Device</span><span class="lb">2U-341 甚高频通信及无线电导航集成设备 2</span><span class="dt">连接器 3401U3501-M5-J131</span></div></li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color:var(--muted)">物理腿 · 线束真值</h3>
+      <ul class="chain">
+        <li><span class="nub"></span><div class="card"><span class="t">Signal</span><span class="lb">N240279-340014</span><span class="dt">28V 供电</span></div><span class="rel-cap">└ <b>IMPLEMENTS</b> ←（两根导线实现）</span></li>
+        <li><span class="nub"></span><div class="card"><span class="t">Wire</span><span class="lb">W3303-34023-14</span><span class="dt">缆号 34023 · 单芯非屏蔽 · AWG14</span></div><span class="rel-cap">└ <b>END_AT_ICPIN</b> →</span></li>
+        <li><span class="nub"></span><div class="card"><span class="t">Interconnect</span><span class="lb">D33002-A1 · 针 3</span><span class="dt">分离面</span></div><span class="rel-cap">└ <b>THROUGH_PAIR</b> R⇄P 贯通，跨分离面续接 →</span></li>
+        <li><span class="nub"></span><div class="card"><span class="t">Interconnect</span><span class="lb">D33004-A2 · 针 3</span><span class="dt">分离面</span></div><span class="rel-cap">└ 第二根 W3303-34024-14 走同两处分离面针 4</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">
+    <b>讲给听众的一句话：</b>试验中若 2U-341 这路 28V 掉电，沿物理腿立即得到候选故障点清单——J4 针 E、两处分离面的针 3/4、J131 针 3/4、两根 AWG14 导线，再叠加已知质量隐患生成带证据的排查单。人工翻表半天的事，图谱遍历毫秒级。这就是 8/25 三个 Skill 的价值。
+  </div>
+</section>
+
+<footer>
+  数字权威出处：<code>graph\stats.md</code>　·　样例均为脱敏后真实数据　·　本页与 <code>01-进展与卡点汇报.html</code>、<code>03-总表更新内容.html</code> 配套使用
+</footer>
+
+</div>
+<script>
+(function(){
+  var data=[["变更事件",81093,"proc"],["针孔",41786,"prod"],["信号端点",40270,"prod"],["信号",18445,"prod"],
+    ["互联点针孔",6996,"prod"],["审批事件",6798,"proc"],["连接器",4539,"prod"],["型谱针位",4287,"rule"],
+    ["导线",1899,"prod"],["设备",1851,"prod"],["信号分组",1733,"prod"],["其他 13 类",943,"other"]];
+  var col={prod:"var(--c-prod)",proc:"var(--c-proc)",rule:"var(--c-rule)",other:"var(--c-other)"};
+  var el=document.getElementById("bars"),max=81093,h="";
+  data.forEach(function(r){
+    h+='<div class="bar-row"><div class="lbl">'+r[0]+'</div><div><div class="bar" style="width:'+
+      Math.max(0.35,r[1]/max*100)+'%;background:'+col[r[2]]+'"></div></div><div class="val">'+
+      r[1].toLocaleString("en-US")+'</div></div>';
+  });
+  el.innerHTML=h;
+})();
+</script>
+</body>
+</html>

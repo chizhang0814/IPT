@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0814 会议 · 总表更新内容</title>
+<style>
+:root{
+  --bg:#F5F4F1; --surface:#FFFFFF; --ink:#20242A; --muted:#5D6673; --line:#E4E2DC;
+  --accent:#B4551D; --accent-ink:#8A3E12; --done:#2E7D4F; --done-bg:#E8F2EC;
+  --chip-bg:#F0EEE9; --code-bg:#F0EEE9; --shadow:0 1px 3px rgba(32,36,42,.06);
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#15171B; --surface:#1E2126; --ink:#E9E7E2; --muted:#9AA1AB; --line:#2D3138;
+  --accent:#D9702E; --accent-ink:#E8935B; --done:#5CB884; --done-bg:#22322A;
+  --chip-bg:#282C33; --code-bg:#282C33; --shadow:none;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.75 "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;}
+.mono{font-family:ui-monospace,Consolas,Menlo,monospace;}
+.wrap{max-width:1000px;margin:0 auto;padding:40px 24px 80px;}
+.eyebrow{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;}
+h1{font-size:24px;line-height:1.35;margin:6px 0 8px;font-weight:800;}
+.hero-sub{color:var(--muted);font-size:14px;max-width:52em;}
+section{margin-top:40px;}
+h2{font-size:18px;font-weight:700;margin:6px 0 12px;}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;box-shadow:var(--shadow);overflow:hidden;}
+.item .col{padding:8px 16px;background:var(--chip-bg);font-size:12.5px;font-weight:700;color:var(--muted);display:flex;gap:10px;align-items:baseline;}
+.item .col .cn{color:var(--ink);font-size:13.5px;}
+.item .val{padding:10px 16px;font-size:13.5px;user-select:all;}
+.item .val p{margin:0 0 6px;} .item .val p:last-child{margin:0;}
+table{border-collapse:collapse;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13px;}
+th,td{text-align:left;padding:9px 14px;border-top:1px solid var(--line);vertical-align:top;}
+thead th{border-top:none;background:var(--chip-bg);font-size:12.5px;color:var(--muted);font-weight:650;}
+td.wk{font-family:ui-monospace,Consolas,monospace;font-size:12px;white-space:nowrap;color:var(--muted);}
+td.sel{user-select:all;}
+.table-scroll{overflow-x:auto;border-radius:10px;}
+.note{background:var(--done-bg);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13.5px;margin-top:8px;}
+.note b{color:var(--done);}
+footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;}
+code{font-family:ui-monospace,Consolas,monospace;background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">总表填报 · 2026-08-14</div>
+  <h1>总表更新内容（逐列对照，点击文本块即全选）</h1>
+  <p class="hero-sub">以下内容已填入同文件夹的 <code>附件1-各模型团队工作统计-北研0925-V1 的副本.xlsx</code>（序号 1 行），可直接交表；本页供向总表复制粘贴时逐列对照。<b>注意：7/27–8/9 两周为回溯性归纳，交表前请按团队实际情况校核。</b></p>
+</header>
+
+<section>
+  <div class="eyebrow">A · 静态列（B–M）</div>
+  <h2>场景定义与资源统计</h2>
+
+  <div class="item"><div class="col">B<span class="cn">场景智能体名称</span></div>
+    <div class="val">电动飞机全机电气接口智能协同与追溯智能体</div></div>
+
+  <div class="item"><div class="col">C<span class="cn">场景背景介绍</span></div>
+    <div class="val">电动飞机新构型全机电气接口（EICD）涉及设备、连接器、针孔、信号、导线、线束、分离面等海量强关联数据，跨20余个ATA系统。接口协同关系梳理、变更影响评估和逻辑-物理一致性核查目前主要依靠人工，效率和一致性有待提升。团队已建成EICD综合管理平台，沉淀了全机电气接口结构化数据及变更、审批全过程数据，具备直接构建知识图谱与场景智能体的数据基础。</div></div>
+
+  <div class="item"><div class="col">D<span class="cn">场景智能体目的意义</span></div>
+    <div class="val">基于已治理的EICD数据库构建领域本体、知识图谱与场景智能体，面向电气接口设计团队提供电气链路追踪、变更影响分析、数据质量体检、故障关联、证据溯源等能力：一句话查清一条链路的端到端物理路径，看清一次变更的波及面和需通知的责任人，获得带库表行级证据的质量诊断，为方案评审、问题定位和设计优化提供依据。</div></div>
+
+  <div class="item"><div class="col">E<span class="cn">技术路径</span></div>
+    <div class="val">以领域本体和基于schema的专业知识图谱为知识底座（从EICD关系库确定性ETL生成，随源库刷新，零抽取歧义），结合MCP工具层（图谱查询+分析计算）构建场景智能体，接入Comac Claw平台；评测金标由SQL现算，验收结果客观可复现。</div></div>
+
+  <div class="item"><div class="col">F<span class="cn">所需抽取数据范围及数据量</span></div>
+    <div class="val">范围：全机电气接口结构化数据——设备1,851、连接器4,539、针孔41,786、信号18,445、信号端点40,270、导线1,899、互联点171、线束67、连接器型谱204，及变更记录81,093条、审批记录6,798条过程数据；覆盖6个型号构型、20余个ATA系统。数据量：49表、脱敏后123MB；全部经确定性假名化脱敏并通过286探针全库零残留验证。</div></div>
+
+  <div class="item"><div class="col">G<span class="cn">所需评测集范围及数据量</span></div>
+    <div class="val">范围：实体查询、结构计数、链路追踪、逻辑-物理对齐、变更影响、质量核查六类任务。数据量：自动生成150–200条（金标答案由SQL现算，客观可判分、可复现）+人工复杂题20–30条；查询/核查类准确率目标≥85%，分析生成类考核关键证据召回率。已产出首批样题20条并通过图谱独立复算抽查（5/5）。</div></div>
+
+  <div class="item"><div class="col">H<span class="cn">Skill个数及每个skill的概述</span></div>
+    <div class="val">共10个。首批3个（8/25前）：①电气链路追踪——信号端到端物理路径（设备→针孔→导线→分离面→设备）含供电与接地路径；②变更影响分析——拟变更设备/连接器的受影响信号、导线、线束清单及责任人与建议流程；③数据质量体检——连通性缺口、端接尺寸、型谱占用、余度一致性等分级诊断。扩展7个（9/25前）：④电气定义智能问答⑤规范与规则问答⑥故障排查辅助⑦接地网络分析⑧构型对比⑨设计完整性检查⑩报告与协调单生成。每个Skill配输入/输出、调用链说明和验证样例，并维护Skill—图谱节点/关系对应表。</div></div>
+
+  <div class="item"><div class="col">I<span class="cn">基于schema的知识图谱个数及概述（表明节点个数）</span></div>
+    <div class="val">1套。三层结构：产品定义层（设备/连接器/针孔/信号/导线/线束/互联点等16类）、规则层（型谱/触件/电源/接地等5类，含204个连接器型谱）、过程层（变更/审批/人员3类）。v0已建成：22类共210,640个节点、32类共401,938条关系，每个节点带source_table/source_id行级回溯键，答案可定位到数据库行级证据；ETL确定性可重跑，9/25前随数据刷新交付终版。</div></div>
+
+  <div class="item"><div class="col">J<span class="cn">MCP个数及每个MCP的概述</span></div>
+    <div class="val">2个。①eicd-graph（8/25前）：图谱与实体查询MCP——项目/设备/连接器/针孔/信号/导线检索、链路追踪、变更历史、只读SQL沙箱等约12个只读工具；②eicd-analysis（9/6前）：分析计算MCP——变更影响分析、质量检查执行、接地网络核查、构型对比、报告生成等约6个工具。</div></div>
+
+  <div class="item"><div class="col">K / L<span class="cn">所属三级专业 / 二级专业</span></div>
+    <div class="val">智能设计技术　/　新构型</div></div>
+
+  <div class="item"><div class="col">M<span class="cn">对其它组的要求</span></div>
+    <div class="val">①提供Comac Claw平台接入规范（Skill定义格式、图谱接入格式、MCP支持情况）及联调环境账号；②脱敏口径（anonymize_config.yaml）保密审查确认；③平台侧大模型接入方式（内网模型地址/密钥）；④总体专业配合出人工评测复杂题20–30条（9/12前）。</div></div>
+</section>
+
+<section>
+  <div class="eyebrow">B · 周计划列（N–AI）</div>
+  <h2>11 周工作计划与交付物</h2>
+  <div class="note"><b>截至 8/14 的实际状态：</b>8/10–8/16 周的交付物已全部落盘（见 02-交付物展示.html），该周填报内容为实际交付而非计划。</div>
+  <div class="table-scroll" style="margin-top:10px"><table>
+    <thead><tr><th style="width:8.5em">周</th><th>工作计划</th><th>交付物</th></tr></thead>
+    <tbody>
+      <tr><td class="wk">07/27–08/02</td><td class="sel">场景方向论证：梳理候选场景，评估原"运行逻辑分析"场景的数据可得性与交付风险。</td><td class="sel">场景初步方案及数据需求清单；数据可得性风险评估结论。</td></tr>
+      <tr><td class="wk">08/03–08/09</td><td class="sel">数据资产盘点：确定放弃纯文档抽取路线，改以EICD综合管理平台结构化数据库（49表、6构型、20+个ATA系统）为知识基座；重构场景定义与技术路径。</td><td class="sel">数据资产盘点结论；场景重定义（电气接口智能协同与追溯）；开发方案框架。</td></tr>
+      <tr><td class="wk">08/10–08/16</td><td class="sel">开发方案定稿；建立交付仓库；数据库快照与schema摸底（49表）；领域本体设计；脱敏管线开发与多轮验证；图谱ETL开发；评测生成器骨架。</td><td class="sel">《开发方案》v1.0；本体两件套（22类/28关系，机器可读+人读）；脱敏库（确定性假名化，286探针零残留）；知识图谱v0（210,640节点/401,938关系，含stats统计）；评测样题20条（SQL金标，图谱复算抽查5/5通过）。</td></tr>
+      <tr><td class="wk">08/17–08/23</td><td class="sel">eicd-graph MCP v1开发（约12个只读工具）；S03链路追踪、S04变更影响、S08质量体检三个Skill开发与联调（内核复用平台已验证算法，与原脚本对拍验证）；本地参考智能体跑通；自动评测集扩至100+条并首轮跑分；Claw接入规范到位则完成适配器与图谱格式导出。</td><td class="sel">3个Skill技能包（说明/提示词/工具契约/验证样例）；eicd-graph MCP v1；可演示的本地智能体；评测报告v1；（视规范到位情况）Claw适配器。</td></tr>
+      <tr><td class="wk">08/24–08/30</td><td class="sel">8/25里程碑：平台接入联调（或交平台中立包+接入映射文档）、演示故事线（连接器换型谱：查链路→看影响→体检确认）、阶段材料打包；8/26起S01电气定义问答、S02规范问答开工。</td><td class="sel">8/25阶段交付：场景智能体（平台接入版/本地参考版+接入包）、3个Skill、知识图谱v1及节点/关系统计、评测报告、演示录屏；S01/S02工具层半成品。</td></tr>
+      <tr><td class="wk">08/31–09/06</td><td class="sel">S01、S02完成；eicd-analysis MCP开发交付（影响分析/质量检查/接地核查等约6工具）；评测集扩至150条。</td><td class="sel">累计5个Skill；第二个MCP（eicd-analysis）；评测报告v2。</td></tr>
+      <tr><td class="wk">09/07–09/13</td><td class="sel">S05故障排查辅助（链路+质量隐患叠加生成排查单）、S06接地网络分析（复用接地语义层金标库）；收集总体专业人工评测题入金标。</td><td class="sel">累计7个Skill；故障排查演示样例；人工评测题入库（如收到）。</td></tr>
+      <tr><td class="wk">09/14–09/20</td><td class="sel">S07构型对比、S09设计完整性检查（逻辑边—物理导线兑现核查）；9/15数据快照刷新重建图谱终版；全量评测回归（目标200条）。</td><td class="sel">累计9个Skill；知识图谱终版（9/15数据）；评测报告v3。</td></tr>
+      <tr><td class="wk">09/21–09/27</td><td class="sel">S10报告与协调单生成；10个Skill端到端调用链检查与集成；验收材料包（schema/节点关系统计/Skill—图谱对应表/调用说明/验证记录）；9/25发布。</td><td class="sel">9/25最终交付：发布可用场景智能体、10个Skill、2个MCP、知识图谱终版及本体、评测集与跑分工具、全套验收材料包。</td></tr>
+      <tr><td class="wk">09/28–10/04</td><td class="sel">试运行与反馈收集：组织电气接口团队实际使用，收集问题清单；缺陷修复与性能打磨；评测口径复核。</td><td class="sel">试运行问题清单及修复记录；稳定版本；试运行小结。</td></tr>
+      <tr><td class="wk">10/05–10/11</td><td class="sel">移交与固化：使用培训、运维文档归档、数据刷新流程移交（快照→脱敏→图谱→评测四步链）；经验总结与推广建议（可复制到其他型号/专业的数据底座模式）。</td><td class="sel">培训材料与操作手册；归档文档包；经验总结及推广建议报告。</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>
+  已填 Excel：同文件夹 <code>附件1-各模型团队工作统计-北研0925-V1 的副本.xlsx</code>（序号1行，34个单元格）　·　数字权威出处：<code>D:\Downloads\IPT\graph\stats.md</code>
+</footer>
+
+</div>
+</body>
+</html>

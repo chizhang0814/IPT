@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0814 会议汇报 · 进展与卡点</title>
+<style>
+:root{
+  --bg:#F5F4F1; --surface:#FFFFFF; --ink:#20242A; --muted:#5D6673; --line:#E4E2DC;
+  --accent:#B4551D; --accent-ink:#8A3E12; --done:#2E7D4F; --done-bg:#E8F2EC;
+  --warn:#A8650D; --warn-bg:#F7EFDF; --chip-bg:#F0EEE9; --code-bg:#F0EEE9;
+  --shadow:0 1px 3px rgba(32,36,42,.06);
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#15171B; --surface:#1E2126; --ink:#E9E7E2; --muted:#9AA1AB; --line:#2D3138;
+  --accent:#D9702E; --accent-ink:#E8935B; --done:#5CB884; --done-bg:#22322A;
+  --warn:#D9A24A; --warn-bg:#37301F; --chip-bg:#282C33; --code-bg:#282C33; --shadow:none;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.75 "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;}
+.mono{font-family:ui-monospace,Consolas,Menlo,monospace;font-variant-numeric:tabular-nums;}
+.wrap{max-width:1000px;margin:0 auto;padding:40px 24px 80px;}
+.eyebrow{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;}
+h1{font-size:25px;line-height:1.35;margin:6px 0 8px;font-weight:800;}
+.hero-sub{color:var(--muted);font-size:14px;}
+section{margin-top:44px;}
+h2{font-size:19px;font-weight:700;margin:6px 0 4px;}
+.sec-note{color:var(--muted);font-size:13.5px;margin:0 0 16px;max-width:48em;}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px 11px;box-shadow:var(--shadow);}
+.kpi .v{font-family:ui-monospace,Consolas,monospace;font-size:24px;font-weight:700;line-height:1.15;}
+.kpi .v small{font-size:13px;color:var(--muted);}
+.kpi .k{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.kpi.done .v{color:var(--done);} .kpi.accent .v{color:var(--accent);}
+.callout{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-top:14px;box-shadow:var(--shadow);}
+.callout p{margin:0;max-width:58em;}
+table{border-collapse:collapse;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13.5px;}
+th,td{text-align:left;padding:9px 14px;border-top:1px solid var(--line);vertical-align:top;}
+thead th{border-top:none;background:var(--chip-bg);font-size:12.5px;color:var(--muted);font-weight:650;}
+.ok{color:var(--done);font-weight:700;white-space:nowrap;}
+.table-scroll{overflow-x:auto;border-radius:10px;}
+/* 卡点卡片 */
+.blocks{display:grid;gap:12px;}
+.blk{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 20px;box-shadow:var(--shadow);}
+.blk .bt{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;}
+.blk .no{font-family:ui-monospace,Consolas,monospace;font-size:12px;font-weight:700;color:var(--warn);background:var(--warn-bg);padding:3px 9px;border-radius:999px;}
+.blk .nm{font-weight:700;font-size:15px;}
+.blk dl{margin:10px 0 0;display:grid;grid-template-columns:5.5em 1fr;gap:4px 12px;font-size:13.5px;}
+.blk dt{color:var(--muted);font-weight:600;}
+.blk dd{margin:0;}
+.blk .ask{color:var(--accent-ink);font-weight:650;}
+.chip{display:inline-block;font-size:11.5px;line-height:1;padding:5px 9px;border-radius:999px;background:var(--chip-bg);color:var(--muted);font-weight:600;}
+.chip.ms{background:var(--ink);color:var(--bg);}
+footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;}
+code{font-family:ui-monospace,Consolas,monospace;background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">会议汇报 · 2026-08-14</div>
+  <h1>电动飞机全机电气接口智能协同与追溯智能体 — 进展与卡点</h1>
+  <p class="hero-sub">数据基座：EICD 综合管理平台（49 表 · 6 构型 · 20+ ATA 系统）　·　两个刚性里程碑：<b>8/25</b> 平台接入 + 3 Skill + 图谱 v1　/　<b>9/25</b> 十个 Skill + 图谱终版发布</p>
+</header>
+
+<section>
+  <div class="eyebrow">01 · 一句话定位</div>
+  <div class="callout" style="margin-top:8px">
+    <p>把场景从"文档抽取"改成<b>"数据库确定性工程"</b>——基于已运行的 EICD 平台数据库建图谱和智能体：图谱不靠抽取靠 ETL（随源库可重跑），Skill 内核复用已验证代码，评测金标由 SQL 现算，验收结果可复现。方案里没有一处需要赌。</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · 进展</div>
+  <h2>按计划第一周（8/10–8/16），主体已于 8/12 完成——超前 3 天</h2>
+  <div class="kpis">
+    <div class="kpi"><div class="v">210,640</div><div class="k">知识图谱节点（24 类）</div></div>
+    <div class="kpi"><div class="v">401,938</div><div class="k">知识图谱关系（32 类）</div></div>
+    <div class="kpi done"><div class="v">0 <small>残留</small></div><div class="k">脱敏验证 · 286 探针全库扫描</div></div>
+    <div class="kpi done"><div class="v">5/5</div><div class="k">图谱正确性抽查（独立复算 vs SQL 金标）</div></div>
+    <div class="kpi"><div class="v">20 <small>条</small></div><div class="k">评测样题（金标 SQL 现算）</div></div>
+    <div class="kpi accent"><div class="v">D−11</div><div class="k">距 8/25 里程碑</div></div>
+  </div>
+  <div class="table-scroll" style="margin-top:14px"><table>
+    <thead><tr><th style="width:11em">交付物</th><th>说明</th><th style="width:5em">状态</th></tr></thead>
+    <tbody>
+      <tr><td>开发方案 v1.0</td><td>7 周计划；每周交付物不依赖外部输入即可产出，外部依赖全部配兜底路径</td><td class="ok">✓ 已交付</td></tr>
+      <tr><td>领域本体</td><td>三层 22 类 / 28 种关系，机器可读+人读两版，每类带源表源列映射</td><td class="ok">✓ 已交付</td></tr>
+      <tr><td>脱敏管线</td><td>确定性假名化＋残留验证器，四轮迭代至 286 探针全库零残留（口径配置化，审查结论出来改配置即可重跑）</td><td class="ok">✓ 已交付</td></tr>
+      <tr><td>知识图谱 v0</td><td>210,640 节点 / 401,938 关系；每个节点带数据库行级回溯键；ETL 确定性可重跑</td><td class="ok">✓ 已交付</td></tr>
+      <tr><td>评测生成器</td><td>4 类模板 × SQL 金标，首批 20 条样题；图谱独立复算抽查 5/5 通过</td><td class="ok">✓ 已交付</td></tr>
+      <tr><td>版本管理</td><td>git 仓库建立（敏感数据与映射表不入库），首次提交 f7d81da</td><td class="ok">✓ 已交付</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="eyebrow">03 · 卡点</div>
+  <h2>三个卡点：都有兜底不停线，但需要会上协调</h2>
+  <p class="sec-note">卡点均不威胁里程碑（每项已配兜底路径），影响的是 8/25 的交付形态——协调越早，形态越完整。</p>
+  <div class="blocks">
+    <div class="blk">
+      <div class="bt"><span class="no">卡点 1</span><span class="nm">Comac Claw 平台接入规范未到手</span></div>
+      <dl>
+        <dt>需要什么</dt><dd>Skill 定义格式、知识图谱接入格式、是否支持 MCP、联调环境账号</dd>
+        <dt>影响</dt><dd>决定 8/25 交付形态：平台接入版智能体 vs 平台中立包＋接入映射文档</dd>
+        <dt>兜底</dt><dd>全线按平台中立格式开发（jsonl 属性图 / 标准技能包 / MCP 协议），规范到手 1–2 天内补适配器</dd>
+        <dt>请求协调</dt><dd class="ask">会上明确平台组对接人，并给出规范与联调账号的提供时间（期望 8/20 前）</dd>
+      </dl>
+    </div>
+    <div class="blk">
+      <div class="bt"><span class="no">卡点 2</span><span class="nm">脱敏口径未过保密审查</span></div>
+      <dl>
+        <dt>需要什么</dt><dd>对脱敏配置（anonymize_config.yaml）及配套脱敏报告、残留清单的审查确认</dd>
+        <dt>影响</dt><dd>决定哪些字段可出现在平台侧交付物中；当前技术编码（设备号/信号号）按业务需要保留</dd>
+        <dt>兜底</dt><dd>已按保守口径开发（人名/工号/供应商/型号标识全部假名化）；口径调整只改配置重跑，不改代码</dd>
+        <dt>请求协调</dt><dd class="ask">明确保密审查的通道、责任人与时限（期望 8/20 前给结论）</dd>
+      </dl>
+    </div>
+    <div class="blk">
+      <div class="bt"><span class="no">卡点 3</span><span class="nm">平台侧大模型接入方式未定</span></div>
+      <dl>
+        <dt>需要什么</dt><dd>内网模型服务地址与密钥（或允许使用的模型清单）</dd>
+        <dt>影响</dt><dd>决定演示形态：自然语言对话演示 vs 确定性调用链演示（Skill 底层管道不依赖模型）</dd>
+        <dt>兜底</dt><dd>三个首批 Skill 的调用链是确定性管道，可脱离模型完成端到端演示；对话层随模型到位即接（适配层现成，改环境变量即换）</dd>
+        <dt>请求协调</dt><dd class="ask">明确模型资源的责任人与开通时间（期望 8/20 前）</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">04 · 下两周</div>
+  <h2>到 8/25 里程碑的路线</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th style="width:9em">时间</th><th>工作</th><th>交付物</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">8/14–8/16</td><td>W1 收尾：图谱适配导出样例（Neo4j/Claw 格式）、评测模板扩类</td><td>适配导出器、评测集扩充</td></tr>
+      <tr><td class="mono">8/17–8/23</td><td>eicd-graph MCP（约 12 个只读工具）；三个首批 Skill：S03 电气链路追踪 / S04 变更影响分析 / S08 数据质量体检（内核与平台原脚本对拍验证）；本地参考智能体；评测扩至 100+ 条并首轮跑分</td><td>3 个技能包、MCP v1、可演示智能体、评测报告 v1</td></tr>
+      <tr><td class="mono">8/24–8/25</td><td>平台接入联调（或提交平台中立包）；演示故事线：连接器换型谱——查链路 → 看影响 → 体检确认</td><td><span class="chip ms">8/25 里程碑</span>　平台接入版智能体 + 3 Skill + 图谱 v1 + 评测记录 + 演示录屏</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>
+  配套材料（同文件夹）：<code>02-交付物展示.html</code>（含存储路径与现场演示指引）　·　<code>03-总表更新内容.html</code>（总表逐列填报内容）　·　<code>附件1-…-V1 的副本.xlsx</code>（已填好，可直接交表）<br>
+  交付物仓库：<code>D:\Downloads\IPT</code>　·　远程：<code>github.com/chizhang0814/IPT</code>
+</footer>
+
+</div>
+</body>
+</html>

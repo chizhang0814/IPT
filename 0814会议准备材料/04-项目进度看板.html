@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>电气接口智能体 · 进度看板</title>
+<style>
+:root{
+  --bg:#F5F4F1; --surface:#FFFFFF; --ink:#20242A; --muted:#5D6673; --line:#E4E2DC;
+  --accent:#B4551D; --accent-ink:#8A3E12; --done:#2E7D4F; --done-bg:#E8F2EC;
+  --pending:#8A919C; --chip-bg:#F0EEE9; --code-bg:#F0EEE9;
+  --c-prod:#3E6FA6; --c-proc:#B4551D; --c-rule:#7E58AF; --c-other:#A6ABB3;
+  --shadow:0 1px 3px rgba(32,36,42,.06);
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#15171B; --surface:#1E2126; --ink:#E9E7E2; --muted:#9AA1AB; --line:#2D3138;
+  --accent:#D9702E; --accent-ink:#E8935B; --done:#5CB884; --done-bg:#22322A;
+  --pending:#7A828D; --chip-bg:#282C33; --code-bg:#282C33;
+  --c-prod:#4E8BD9; --c-proc:#D9702E; --c-rule:#9B7BD1; --c-other:#6B717B;
+  --shadow:none;
+}}
+:root[data-theme="dark"]{
+  --bg:#15171B; --surface:#1E2126; --ink:#E9E7E2; --muted:#9AA1AB; --line:#2D3138;
+  --accent:#D9702E; --accent-ink:#E8935B; --done:#5CB884; --done-bg:#22322A;
+  --pending:#7A828D; --chip-bg:#282C33; --code-bg:#282C33;
+  --c-prod:#4E8BD9; --c-proc:#D9702E; --c-rule:#9B7BD1; --c-other:#6B717B;
+  --shadow:none;
+}
+:root[data-theme="light"]{
+  --bg:#F5F4F1; --surface:#FFFFFF; --ink:#20242A; --muted:#5D6673; --line:#E4E2DC;
+  --accent:#B4551D; --accent-ink:#8A3E12; --done:#2E7D4F; --done-bg:#E8F2EC;
+  --pending:#8A919C; --chip-bg:#F0EEE9; --code-bg:#F0EEE9;
+  --c-prod:#3E6FA6; --c-proc:#B4551D; --c-rule:#7E58AF; --c-other:#A6ABB3;
+  --shadow:0 1px 3px rgba(32,36,42,.06);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.75 "PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Source Han Sans SC",system-ui,sans-serif;}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;font-variant-numeric:tabular-nums;}
+.wrap{max-width:1060px;margin:0 auto;padding:40px 24px 80px;}
+header.hero{padding:28px 0 8px;}
+.eyebrow{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;}
+h1{font-size:27px;line-height:1.35;margin:6px 0 10px;font-weight:800;text-wrap:balance;}
+.hero-sub{color:var(--muted);font-size:14px;}
+.hero-sub b{color:var(--ink);font-weight:600;}
+section{margin-top:52px;}
+h2{font-size:20px;font-weight:700;margin:6px 0 4px;}
+.sec-note{color:var(--muted);font-size:13.5px;margin:0 0 18px;max-width:46em;}
+h3{font-size:15.5px;font-weight:700;margin:0 0 8px;}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 16px 13px;box-shadow:var(--shadow);}
+.kpi .v{font-family:ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;font-size:26px;font-weight:700;line-height:1.15;}
+.kpi .v small{font-size:14px;font-weight:600;color:var(--muted);}
+.kpi .k{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.kpi.done .v{color:var(--done);}
+.kpi.accent .v{color:var(--accent);}
+/* callout */
+.callout{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-top:14px;box-shadow:var(--shadow);}
+.callout p{margin:0;max-width:60em;}
+/* timeline */
+.tl{list-style:none;margin:0;padding:0;position:relative;}
+.tl::before{content:"";position:absolute;left:9px;top:8px;bottom:8px;width:2px;background:var(--line);}
+.tl li{position:relative;padding:0 0 10px 34px;}
+.tl .dot{position:absolute;left:2px;top:9px;width:16px;height:16px;border-radius:50%;
+  border:2px solid var(--pending);background:var(--bg);}
+.tl li.done .dot{border-color:var(--done);background:var(--done);}
+.tl li.cur .dot{border-color:var(--accent);background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%, transparent);}
+.tl details{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);}
+.tl li.cur details{border-color:var(--accent);}
+.tl summary{cursor:pointer;padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;list-style:none;}
+.tl summary::-webkit-details-marker{display:none}
+.tl summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:10px;}
+.tl .wk{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--muted);min-width:9.5em;}
+.tl .ttl{font-weight:650;font-size:14.5px;flex:1;min-width:14em;}
+.tl .body{padding:2px 16px 14px;border-top:1px dashed var(--line);font-size:13.5px;color:var(--muted);}
+.tl .body b{color:var(--ink);font-weight:600;}
+.tl .body p{margin:8px 0 0;max-width:62em;}
+.chip{display:inline-block;font-size:11.5px;line-height:1;padding:5px 9px;border-radius:999px;background:var(--chip-bg);color:var(--muted);font-weight:600;white-space:nowrap;}
+.chip.done{background:var(--done-bg);color:var(--done);}
+.chip.cur{background:color-mix(in srgb,var(--accent) 14%, transparent);color:var(--accent-ink);}
+.chip.ms{background:var(--ink);color:var(--bg);}
+/* deliverables table */
+table{border-collapse:collapse;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13.5px;}
+th,td{text-align:left;padding:9px 14px;border-top:1px solid var(--line);vertical-align:top;}
+thead th{border-top:none;background:var(--chip-bg);font-size:12.5px;color:var(--muted);font-weight:650;}
+td.path{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);}
+.ok{color:var(--done);font-weight:700;}
+.table-scroll{overflow-x:auto;border-radius:10px;}
+/* skills */
+.skill-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;}
+.sg{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow);}
+.sg .g-name{font-weight:750;font-size:14px;}
+.sg .g-sub{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.sk{display:flex;gap:8px;align-items:baseline;padding:6px 0;border-top:1px dashed var(--line);font-size:13.5px;}
+.sk .no{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--muted);min-width:2.6em;}
+.sk .nm{flex:1;}
+/* arch */
+.arch{display:flex;flex-direction:column;gap:0;align-items:stretch;max-width:640px;}
+.arch .box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:13.5px;box-shadow:var(--shadow);}
+.arch .box b{font-size:14px;}
+.arch .box .d{color:var(--muted);font-size:12.5px;}
+.arch .arrow{align-self:center;color:var(--muted);font-size:14px;line-height:1;padding:4px 0;}
+.arch .layers{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.arch .layer{border-radius:8px;padding:8px 10px;font-size:12.5px;color:#fff;font-weight:600;}
+.arch .layer small{display:block;font-weight:400;opacity:.9;}
+/* chart */
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px 14px;box-shadow:var(--shadow);}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:12px;}
+.legend .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:baseline;}
+.bar-row{display:grid;grid-template-columns:11em 1fr 6.5em;gap:10px;align-items:center;padding:3px 0;}
+.bar-row .lbl{font-size:12.5px;color:var(--ink);text-align:right;line-height:1.3;}
+.bar-row .lbl small{color:var(--muted);}
+.bar-track{height:16px;position:relative;}
+.bar{height:16px;border-radius:0 4px 4px 0;min-width:2px;transition:opacity .15s;}
+@media (prefers-reduced-motion: reduce){.bar{transition:none}}
+.bar-row .val{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);}
+.bar-row:hover .bar{opacity:.75;}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;line-height:1.5;
+  padding:6px 10px;border-radius:6px;opacity:0;z-index:9;max-width:260px;}
+/* report cards */
+.rep{display:grid;gap:12px;}
+.rep .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 20px;box-shadow:var(--shadow);}
+.rep .tag{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;letter-spacing:.14em;color:var(--accent);text-transform:uppercase;}
+.rep p{margin:6px 0 0;max-width:62em;}
+.rep .say{background:var(--code-bg);border-radius:8px;padding:12px 16px;margin-top:10px;font-size:14px;}
+/* actions */
+.acts{list-style:none;padding:0;margin:0;display:grid;gap:10px;}
+.acts li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;
+  display:flex;gap:12px;align-items:baseline;box-shadow:var(--shadow);}
+.acts .dl{font-family:ui-monospace,Consolas,monospace;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap;}
+.acts .what{flex:1;font-size:14px;}
+.acts .what small{display:block;color:var(--muted);font-size:12.5px;}
+footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;}
+footer code{font-family:ui-monospace,Consolas,monospace;background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:11.5px;}
+details.tbl summary{cursor:pointer;font-size:12.5px;color:var(--muted);padding:8px 0 2px;}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">EICD Agent · 进度看板</div>
+  <h1>电动飞机全机电气接口智能协同与追溯智能体</h1>
+  <p class="hero-sub">数据基座：EICD 综合管理平台（49 表 · 6 构型 · 20+ ATA 系统）　·　更新于 <b>2026-08-12</b>　·　当前状态：<b>W1 主体完成，超前计划 3 天</b></p>
+</header>
+
+<section>
+  <div class="eyebrow">01 · 现状</div>
+  <h2>今天硬盘上已经有什么</h2>
+  <p class="sec-note">以下全部是 8/12 当天已落盘、可复验的结果，不是计划数字。</p>
+  <div class="kpis">
+    <div class="kpi"><div class="v">210,640</div><div class="k">知识图谱节点（24 类）</div></div>
+    <div class="kpi"><div class="v">401,938</div><div class="k">知识图谱关系（32 类）</div></div>
+    <div class="kpi done"><div class="v">0 <small>残留</small></div><div class="k">脱敏验证 · 286 探针全库扫描</div></div>
+    <div class="kpi done"><div class="v">5/5</div><div class="k">图谱正确性抽查 · 独立复算 vs SQL 金标</div></div>
+    <div class="kpi"><div class="v">20 <small>条</small></div><div class="k">评测样题 · 金标由 SQL 现算</div></div>
+    <div class="kpi accent"><div class="v">D−13</div><div class="k">距 8/25 里程碑（平台接入 + 3 Skill）</div></div>
+  </div>
+  <div class="callout">
+    <p><b>一句话定位：</b>把场景从"文档抽取赌博"改成"数据库确定性工程"——图谱不靠抽取靠 ETL（随源库可重跑），Skill 内核复用平台已验证代码，评测金标 SQL 现算、验收结果可复现。方案里没有一处需要赌。</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · 时间线</div>
+  <h2>11 周计划与实际（点击每周展开）</h2>
+  <p class="sec-note">两个刚性里程碑：<b>8/25</b> 平台接入 + 3 个 Skill + 图谱 v1；<b>9/25</b> 十个 Skill + 图谱终版发布。每周交付物均不依赖外部输入即可产出。</p>
+  <ul class="tl">
+    <li class="done"><span class="dot"></span><details><summary>
+      <span class="wk">07/27–08/02</span><span class="ttl">场景方向论证</span><span class="chip done">已完成</span></summary>
+      <div class="body"><p><b>做了：</b>梳理候选场景，评估"运行逻辑分析"场景的数据可得性与交付风险。<b>交付：</b>场景初步方案、数据需求清单、风险评估结论。</p></div>
+    </details></li>
+    <li class="done"><span class="dot"></span><details><summary>
+      <span class="wk">08/03–08/09</span><span class="ttl">数据资产盘点 · 路线切换</span><span class="chip done">已完成</span></summary>
+      <div class="body"><p><b>做了：</b>放弃纯文档抽取路线，改以 EICD 平台结构化数据库为知识基座；场景重定义为"电气接口智能协同与追溯"。<b>交付：</b>盘点结论、场景重定义、开发方案框架。</p></div>
+    </details></li>
+    <li class="cur"><span class="dot"></span><details open><summary>
+      <span class="wk">08/10–08/16</span><span class="ttl">W1 地基：本体 · 脱敏 · 图谱 v0</span><span class="chip cur">本周 · 主体已完成</span></summary>
+      <div class="body">
+        <p><b>已交付：</b>《开发方案》v1.0；本体两件套（22 类 / 28 关系）；脱敏管线四轮迭代至 286 探针零残留；知识图谱 v0（210,640 节点 / 401,938 关系，行级回溯键）；评测生成器 + 20 条样题（抽查 5/5 通过）。</p>
+        <p><b>本周剩余：</b>Neo4j / Claw 适配导出样例；评测模板扩类。</p>
+      </div>
+    </details></li>
+    <li><span class="dot"></span><details><summary>
+      <span class="wk">08/17–08/23</span><span class="ttl">W2 首批 3 个 Skill + MCP v1</span><span class="chip">计划</span></summary>
+      <div class="body"><p><b>计划：</b>eicd-graph MCP（约 12 个只读工具）；S03 链路追踪 / S04 变更影响 / S08 质量体检（内核与原脚本对拍验证）；本地参考智能体跑通；评测扩至 100+ 条并首轮跑分；Claw 规范到位则完成适配。<b>交付：</b>3 个技能包、MCP v1、可演示智能体、评测报告 v1。</p></div>
+    </details></li>
+    <li><span class="dot"></span><details><summary>
+      <span class="wk">08/24–08/30</span><span class="ttl">平台接入 · 演示故事线</span><span class="chip ms">里程碑 8/25</span></summary>
+      <div class="body"><p><b>计划：</b>8/25 交付平台接入版智能体（或平台中立包 + 接入映射文档）、3 个 Skill、图谱 v1 及统计、评测记录、演示录屏（故事线：连接器换型谱——查链路 → 看影响 → 体检确认）。8/26 起 S01/S02 开工。</p></div>
+    </details></li>
+    <li><span class="dot"></span><details><summary>
+      <span class="wk">08/31–09/06</span><span class="ttl">S01 / S02 + 第二个 MCP</span><span class="chip">计划</span></summary>
+      <div class="body"><p><b>计划：</b>电气定义问答、规范问答完成；eicd-analysis MCP（影响分析 / 质量检查 / 接地核查等约 6 工具）；评测扩至 150 条。<b>交付：</b>累计 5 个 Skill、第二个 MCP、评测报告 v2。</p></div>
+    </details></li>
+    <li><span class="dot"></span><details><summary>
+      <span class="wk">09/07–09/13</span><span class="ttl">S05 故障排查 / S06 接地网络</span><span class="chip">计划</span></summary>
+      <div class="body"><p><b>计划：</b>故障排查辅助（链路 + 质量隐患叠加生成排查单）、接地网络分析（复用接地语义层金标库）；总体专业人工评测题入金标。<b>交付：</b>累计 7 个 Skill、故障排查演示样例。</p></div>
+    </details></li>
+    <li><span class="dot"></span><details><summary>
+      <span class="wk">09/14–09/20</span><span class="ttl">S07 构型对比 / S09 完整性检查 · 图谱终版</span><span class="chip">计划</span></summary>
+      <div class="body"><p><b>计划：</b>构型对比、设计完整性检查（逻辑边—物理导线兑现核查）；9/15 数据快照刷新重建图谱终版；全量评测回归（目标 200 条）。<b>交付：</b>累计 9 个 Skill、图谱终版、评测报告 v3。</p></div>
+    </details></li>
+    <li><span class="dot"></span><details><summary>
+      <span class="wk">09/21–09/27</span><span class="ttl">S10 报告生成 · 集成发布</span><span class="chip ms">里程碑 9/25</span></summary>
+      <div class="body"><p><b>计划：</b>报告与协调单生成；10 个 Skill 端到端调用链检查与集成；验收材料包（schema / 节点关系统计 / Skill—图谱对应表 / 调用说明 / 验证记录）；9/25 发布。</p></div>
+    </details></li>
+    <li><span class="dot"></span><details><summary>
+      <span class="wk">09/28–10/04</span><span class="ttl">试运行与反馈修复</span><span class="chip">计划</span></summary>
+      <div class="body"><p><b>计划：</b>组织电气接口团队实际使用，收集问题清单；缺陷修复与性能打磨。<b>交付：</b>问题清单及修复记录、稳定版本、试运行小结。</p></div>
+    </details></li>
+    <li><span class="dot"></span><details><summary>
+      <span class="wk">10/05–10/11</span><span class="ttl">移交培训 · 经验推广</span><span class="chip">计划</span></summary>
+      <div class="body"><p><b>计划：</b>使用培训、运维文档归档、数据刷新流程移交（快照→脱敏→图谱→评测四步链）；经验总结与可复制到其他型号/专业的推广建议。</p></div>
+    </details></li>
+  </ul>
+</section>
+
+<section>
+  <div class="eyebrow">03 · 能力地图</div>
+  <h2>10 个 Skill，按工程师的四个动词排布</h2>
+  <p class="sec-note">首批 3 个（S03 / S04 / S08）8/25 交付，串成一条演示故事线；其余 7 个每周移植 2 个，内核全部来自平台已验证代码。</p>
+  <div class="skill-groups">
+    <div class="sg">
+      <div class="g-name">查</div><div class="g-sub">人人都用 · 频率最高</div>
+      <div class="sk"><span class="no">S01</span><span class="nm">电气定义智能问答</span><span class="chip">9/6</span></div>
+      <div class="sk"><span class="no">S02</span><span class="nm">规范与规则问答</span><span class="chip">9/6</span></div>
+    </div>
+    <div class="sg">
+      <div class="g-name">析</div><div class="g-sub">核心价值 · 图谱深度推理</div>
+      <div class="sk"><span class="no">S03</span><span class="nm">电气链路追踪</span><span class="chip ms">8/25</span></div>
+      <div class="sk"><span class="no">S04</span><span class="nm">变更影响分析</span><span class="chip ms">8/25</span></div>
+      <div class="sk"><span class="no">S05</span><span class="nm">故障排查辅助</span><span class="chip">9/13</span></div>
+      <div class="sk"><span class="no">S06</span><span class="nm">接地网络分析</span><span class="chip">9/13</span></div>
+      <div class="sk"><span class="no">S07</span><span class="nm">构型对比</span><span class="chip">9/20</span></div>
+    </div>
+    <div class="sg">
+      <div class="g-name">检</div><div class="g-sub">质量与一致性保障</div>
+      <div class="sk"><span class="no">S08</span><span class="nm">数据质量体检</span><span class="chip ms">8/25</span></div>
+      <div class="sk"><span class="no">S09</span><span class="nm">设计完整性检查</span><span class="chip">9/20</span></div>
+    </div>
+    <div class="sg">
+      <div class="g-name">报</div><div class="g-sub">结果变成交付物</div>
+      <div class="sk"><span class="no">S10</span><span class="nm">报告与协调单生成</span><span class="chip">9/25</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">04 · 架构</div>
+  <h2>智能体怎么搭：三层知识 + 两个 MCP</h2>
+  <div class="arch">
+    <div class="box"><b>Comac Claw 平台</b><span class="d">　智能体入口 · 10 个 Skill（规范未到时以平台中立包 + 本地参考实现兜底）</span></div>
+    <div class="arrow">▼</div>
+    <div class="box"><b>MCP 工具层 × 2</b><span class="d">　eicd-graph（实体/图谱/链路查询，约 12 工具）　·　eicd-analysis（影响分析/质量检查/报告，约 6 工具）</span></div>
+    <div class="arrow">▼</div>
+    <div class="box">
+      <div class="layers">
+        <div class="layer" style="background:var(--c-prod)">产品定义层<small>设备→连接器→针孔，信号→端点→导线→线束→分离面（16 类）</small></div>
+        <div class="layer" style="background:var(--c-rule)">规则层<small>型谱·触件·电源·接地·分组规则（5 类）</small></div>
+        <div class="layer" style="background:var(--c-proc)">过程层<small>变更·审批·人员，全程留痕（3 类）</small></div>
+      </div>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="box"><b>eicd_anon.db 脱敏库</b><span class="d">　eicd.db 快照 → 确定性假名化（286 探针零残留）→ ETL 生成图谱，四步链可随数据刷新重跑</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">05 · 图谱构成</div>
+  <h2>210,640 个节点由什么组成</h2>
+  <p class="sec-note">按节点类型排列，颜色标注所属知识分层。悬停查看说明；数字来自 <span class="mono">graph/stats.md</span>，每个节点带 source_table / source_id 行级回溯键。</p>
+  <div class="chart" id="chart">
+    <div class="legend">
+      <span><span class="sw" style="background:var(--c-prod)"></span>产品定义层</span>
+      <span><span class="sw" style="background:var(--c-proc)"></span>过程层</span>
+      <span><span class="sw" style="background:var(--c-rule)"></span>规则层</span>
+      <span><span class="sw" style="background:var(--c-other)"></span>其他（13 类合计）</span>
+    </div>
+    <div id="bars"></div>
+    <details class="tbl"><summary>查看数据表</summary>
+      <div class="table-scroll"><table id="dtable"></table></div>
+    </details>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">06 · 周五汇报</div>
+  <h2>汇报口径：三层讲法，一分钟讲完</h2>
+  <div class="rep">
+    <div class="card"><div class="tag">第一层 · 一句话定位</div>
+      <div class="say">我们把场景从"文档抽取"改成了"数据库确定性工程"——基于已运行的 EICD 平台数据库建图谱和智能体：图谱不靠抽取靠 ETL，Skill 内核复用已验证代码，评测金标由 SQL 现算，验收结果可复现。</div>
+    </div>
+    <div class="card"><div class="tag">第二层 · 三个硬数字</div>
+      <div class="say">本周已建成图谱 v0：<b>21 万节点、40 万关系</b>，每个节点可回溯到数据库行级证据；脱敏通过 <b>286 探针全库零残留</b>验证；图谱正确性抽查 <b>5/5 通过</b>。进度超前计划三天。</div>
+    </div>
+    <div class="card"><div class="tag">第三层 · 承诺与协调</div>
+      <div class="say">里程碑承诺不变：8/25 平台接入 + 3 个 Skill + 图谱 v1，9/25 十个 Skill + 图谱终版。需要协调三件事：Claw 接入规范、脱敏口径确认、模型接入方式——规范类的事越早给，8/25 形态越完整。</div>
+    </div>
+    <div class="card"><div class="tag">如果被追问风险</div>
+      <div class="say">唯一外部依赖是 Claw 平台接入规范。拿不到，我们交平台中立包 + 适配文档，里程碑不受影响。</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">07 · 待你处理</div>
+  <h2>三件事，都有截止日和兜底</h2>
+  <ul class="acts">
+    <li><span class="dl">08/15</span><span class="what">向平台组索取 Comac Claw 接入规范（Skill 格式 / 图谱接入格式 / 是否支持 MCP）<small>兜底：按平台中立格式交付 + 接入映射文档，规范到手后 1–2 天补适配器</small></span></li>
+    <li><span class="dl">08/15</span><span class="what">将 anonymize_config.yaml 送保密口径确认（附脱敏报告与残留清单）<small>兜底：先按最保守口径开发，口径放宽只改配置重跑</small></span></li>
+    <li><span class="dl">08/20</span><span class="what">确认平台侧大模型接入方式（内网模型地址 / 密钥）<small>兜底：Skill 调用链为确定性管道，可脱离模型演示；对话层随模型到位即接</small></span></li>
+  </ul>
+</section>
+
+<footer>
+  交付仓库 <code>D:\Downloads\IPT</code>　·　开发方案 <code>电气接口智能体-开发方案.md</code>　·　周报 <code>docs\周报\W1-20260812.md</code>　·　统计表已填 <code>附件1-…-V1 的副本.xlsx</code><br>
+  时间线中 07/27–08/09 两周为回溯性归纳，请按团队实际情况校核。本页数据截至 2026-08-12。
+</footer>
+
+</div>
+<div id="tip" role="status"></div>
+
+<script>
+(function(){
+  var data = [
+    {t:"变更事件 ChangeEvent", n:81093, l:"proc", d:"79,993 条历史变更 + 增量；含批次、原因、变更人"},
+    {t:"针孔 Pin", n:41786, l:"prod", d:"设备端连接器的针孔，含端接尺寸、屏蔽类型"},
+    {t:"信号端点 SignalEndpoint", n:40270, l:"prod", d:"信号在设备/针孔上的落位，含方向与信号定义"},
+    {t:"信号 Signal", n:18445, l:"prod", d:"全机信号，含电源/余度/接地/功能代码"},
+    {t:"互联点针孔 InterconnectPin", n:6996, l:"prod", d:"分离面/端子排等互联点的针位"},
+    {t:"审批事件 ApprovalEvent", n:6798, l:"proc", d:"两阶段审批请求，关联发起人与实体"},
+    {t:"连接器 Connector", n:4539, l:"prod", d:"设备端元器件，含件号与触件型号"},
+    {t:"型谱针位 ArrangementPosition", n:4287, l:"rule", d:"连接器型谱的针位几何与标准触件"},
+    {t:"导线 Wire", n:1899, l:"prod", d:"物理导线层（线束真值），含线规/线型"},
+    {t:"设备 Device", n:1851, l:"prod", d:"全机电气设备，挂 ATA 系统与 EDZ 分区"},
+    {t:"信号分组 SignalGroup", n:1733, l:"prod", d:"按分组规则归组的信号集合"},
+    {t:"其他 13 类", n:943, l:"other", d:"型谱 204 / 互联点 171 / 人员 133 / ATA 子系统 102 / 分组规则 100 / 线束 67 …"}
+  ];
+  var colors = {prod:"var(--c-prod)", proc:"var(--c-proc)", rule:"var(--c-rule)", other:"var(--c-other)"};
+  var names = {prod:"产品定义层", proc:"过程层", rule:"规则层", other:"混合"};
+  var max = 81093;
+  var bars = document.getElementById("bars");
+  var frag = document.createDocumentFragment();
+  data.forEach(function(r){
+    var row = document.createElement("div"); row.className = "bar-row";
+    var pct = Math.max(0.35, r.n / max * 100);
+    row.innerHTML = '<div class="lbl">' + r.t + '</div>' +
+      '<div class="bar-track"><div class="bar" style="width:' + pct + '%;background:' + colors[r.l] + '"></div></div>' +
+      '<div class="val">' + r.n.toLocaleString("en-US") + '</div>';
+    row.setAttribute("data-tip", names[r.l] + " · " + r.d);
+    frag.appendChild(row);
+  });
+  bars.appendChild(frag);
+  var tbl = document.getElementById("dtable");
+  tbl.innerHTML = "<thead><tr><th>节点类型</th><th>分层</th><th>数量</th></tr></thead><tbody>" +
+    data.map(function(r){return "<tr><td>"+r.t+"</td><td>"+names[r.l]+"</td><td class='mono'>"+r.n.toLocaleString("en-US")+"</td></tr>";}).join("") +
+    "</tbody>";
+  var tip = document.getElementById("tip");
+  bars.addEventListener("mousemove", function(e){
+    var row = e.target.closest(".bar-row");
+    if(!row){ tip.style.opacity = 0; return; }
+    tip.textContent = row.getAttribute("data-tip");
+    tip.style.opacity = 1;
+    var x = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 10);
+    tip.style.left = x + "px";
+    tip.style.top = (e.clientY + 16) + "px";
+  });
+  bars.addEventListener("mouseleave", function(){ tip.style.opacity = 0; });
+})();
+</script>
+
+</html>
