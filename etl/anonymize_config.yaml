@@ -1,0 +1,72 @@
+# 脱敏口径配置（保守默认版，待保密审查确认后调整）
+# 原则：人名/工号/账号/供应商/型号标识 → 确定性假名；技术数据（ATA/编号/信号特性/连接关系）不动
+# 修改本文件后重跑 anonymize.py 即可，无需改代码
+
+# ---- 型号项目：按 id 升序映射 ----
+project_name_map_prefix: "型号"        # 生成 型号A/型号B/... （id 升序）
+
+# ---- 型号标识 token（全文本列替换，最长优先）----
+model_tokens:
+  "CE-25A": "EA-01A"
+  "CE25A": "EA01A"
+  "CE-25": "EA-01"
+  "QD分布式HD": "分布式验证平台"
+
+# 项目名的"机"后缀变体在全文本替换时自动生成（如 X号机 → 型号D机）
+
+# ---- 人员 ----
+generic_accounts: [admin, test, test1, test2, user1, user2, "22222"]   # 通用账号保留原名（无个人信息）
+person_name_prefix: "员工"             # 真实姓名 → 员工001...
+eid_prefix: "E"                        # 6位工号 → E001...（word-boundary 替换）
+password_placeholder: "ANON"
+
+# ---- 供应商 ----
+supplier_prefix: "供应商S"             # → 供应商S01...
+supplier_columns:                      # 列级替换（短名如 "158"/"AVE" 不进全文替换，避免误伤件号）
+  devices: [设备供应商名称]
+  connectors: [设备端元器件供应商名称]
+  sc_connectors: [设备端元器件供应商名称]
+keep_part_numbers: true                # 件号/图号/物料号保留（技术编码）
+
+# ---- 列级人名/工号列 ----
+eid_columns:
+  devices: [设备负责人, created_by]
+  signals: [created_by]
+  users: [username]
+  section_connectors: [负责人]
+  arrangement_review_decisions: [decided_by]
+  arrangement_sources: [reviewer]
+  arrangement_edit_logs: [edited_by]
+  arrangement_code_overrides: [set_by]
+  project_snapshots: [created_by, created_by_name]
+username_ref_columns:                  # 引用 users.username 的列，随用户映射联动
+  approval_requests: [requester_username, reviewed_by_username, rejected_by_username]
+  approval_items: [recipient_username]
+  notifications: [recipient_username]
+  chat_sessions: [username]
+
+# ---- 全文本替换的目标列（人名/工号/型号token/长供应商名，最长优先）----
+freetext_columns:
+  notifications: [title, message]
+  approval_requests: [payload, old_payload, rejection_reason]
+  approval_items: [edited_payload, rejection_reason]
+  change_logs: [old_values, new_values, reason]
+  uploaded_files: [filename, original_filename, error_details]
+  users: [permissions, remarks]
+  projects: [description]
+  permission_requests: [project_name]
+  project_snapshots: [source_project_name, snapshot_name, description]
+  devices: [备注, 设备装机架次, 设备供应商件号, import_conflicts]
+  connectors: [备注, 设备端元器件件号类型及件号, 匹配的线束端元器件件号, 匹配的线束线型, import_conflicts]
+  signals: [备注, 信号架次有效性, import_conflicts]
+  arrangement_sources: [raw_json, source_pdf, source_path]
+
+# ---- 整列清空 ----
+blank_columns:
+  project_snapshots: {payload: "{}"}   # 全库快照载荷，含全量数据副本，直接置空
+
+min_supplier_len_for_freetext: 4       # 长度≥4 的供应商名才进全文替换（防止 "158" 误伤件号）
+
+# ---- 兜底：这些列中任意 6 位数字 token 一律按工号假名化（未注册工号也覆盖）----
+generic_eid_columns:
+  uploaded_files: [filename, original_filename, error_details]

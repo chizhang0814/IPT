@@ -1,0 +1,194 @@
+# 电动飞机全机电气接口领域本体
+# 机器可读版本 —— ETL(etl/build_graph.py) 与 MCP 服务共用
+# 人读版本见 ontology.md
+version: "1.0"
+date: "2026-08-12"
+source_db: eicd_anon.db
+
+# ============ 节点类型 ============
+# id_scheme: 节点 id 统一为 "<type>:<key>"；来源于库表的节点带 source_table/source_id 回溯键
+node_types:
+
+  # ---- 产品定义层 ----
+  Project:
+    cn: 型号项目
+    layer: product
+    source: {table: projects, id: id, label: name}
+    props: [name]
+
+  Region:
+    cn: 机上区域
+    layer: product
+    source: {table: regions, id: id, label: region_name}
+    props: [region_code, region_name, project_id]
+
+  Subregion:
+    cn: 机上分区
+    layer: product
+    source: {table: subregions, id: id, label: subregion_name}
+    props: [subregion_code, subregion_name]
+
+  EDZ:
+    cn: 电气设计区
+    layer: product
+    source: {derived: "distinct devices.EDZ (非空)", key: "project_id + edz_code"}
+    props: [edz_code]
+
+  ATAChapter:
+    cn: ATA章（系统大类）
+    layer: product
+    source: {derived: "devices.设备部件所属系统（4位ATA） 取前两位", key: chapter}
+    props: [chapter]
+
+  ATASubsystem:
+    cn: ATA子系统（4位）
+    layer: product
+    source: {derived: "distinct devices.设备部件所属系统（4位ATA）", key: code}
+    props: [code]
+
+  Device:
+    cn: 设备
+    layer: product
+    source: {table: devices, id: id, label: 设备编号}
+    props: [设备编号, 设备中文名称, 设备英文名称, 设备英文缩写, 设备DAL, 设备安装位置,
+            设备装机构型, 设备装机架次, 设备壳体接地方式, 设备正常工作电压范围（V）, status]
+
+  Connector:
+    cn: 设备端连接器
+    layer: product
+    source: {table: connectors, id: id, label: 设备端元器件编号}
+    props: [设备端元器件编号, 设备端元器件名称及类型, 设备端元器件件号类型及件号, 触件型号, 尾附件件号, status]
+
+  Pin:
+    cn: 针孔
+    layer: product
+    source: {table: pins, id: id, label: 针孔号}
+    props: [针孔号, 端接尺寸, 屏蔽类型, status]
+
+  Signal:
+    cn: 信号
+    layer: product
+    source: {table: signals, id: id, label: unique_id}
+    props: [unique_id, 连接类型, 信号ATA, 推荐导线线规, 推荐导线线型, 独立电源代码,
+            余度代码, 接地代码, 功能代码, 电磁兼容代码, 额定电压, 额定电流,
+            是否成品线, signal_group, twist_group, 协议标识, status]
+
+  SignalGroup:
+    cn: 信号分组
+    layer: product
+    source: {derived: "distinct signals.signal_group (非空)", key: "project_id + group_name"}
+    props: [group_name]
+
+  SignalEndpoint:
+    cn: 信号端点
+    layer: product
+    source: {table: signal_endpoints, id: id, label: 信号名称}
+    props: [信号名称, 信号定义, endpoint_index, input, output, 推荐导线线规]
+
+  Wire:
+    cn: 导线
+    layer: product
+    source: {table: wires, id: id, label: wire_no}
+    props: [wire_no, cable_no, is_shield, gauge_awg, wire_type, color, length_mm, stage, source]
+
+  Harness:
+    cn: 线束
+    layer: product
+    source: {table: harnesses, id: id, label: harness_no}
+    props: [harness_no, alias, zone]
+
+  Interconnect:
+    cn: 互联点（分离面/接地桩/端子排/死接头等）
+    layer: product
+    source: {table: interconnects, id: id, label: label}
+    props: [label, sub_kind, edz, ground_class, stage, ic_type_name]   # ic_type_name 由 ic_types JOIN 展开
+
+  InterconnectPin:
+    cn: 互联点针孔
+    layer: product
+    source: {table: interconnect_pins, id: id, label: pin_num}
+    props: [pin_num, face, contact_size, shield_type, signal_name]
+
+  Arrangement:
+    cn: 连接器型谱
+    layer: rule
+    source: {table: arrangements, id: arrangement_code, label: arrangement_code}
+    props: [arrangement_code, shell_size, shell_letter, family, total_contacts, contact_distribution]
+
+  ArrangementPosition:
+    cn: 型谱针位
+    layer: rule
+    source: {table: arrangement_positions, id: "arrangement_code+label", label: label}
+    props: [label, position_index, contact_std, is_special]
+
+  # ---- 规则层 ----
+  PowerSource:
+    cn: 独立电源代码
+    layer: rule
+    source: {derived: "distinct signals.独立电源代码 (非空)", key: code}
+    props: [code]
+
+  GroundClass:
+    cn: 接地类别
+    layer: rule
+    source: {derived: "distinct interconnects.ground_class ∪ signals.接地代码 (非空)", key: code}
+    props: [code]
+
+  SignalGroupType:
+    cn: 信号分组类型（组建规则）
+    layer: rule
+    source: {table: signal_group_types, id: id, label: name}
+    props: [name, connection_type, prefix, count, protocols, required, optional]
+
+  # ---- 过程层 ----
+  Person:
+    cn: 人员（假名化）
+    layer: process
+    source: {table: users, id: id, label: anon_name, note: "并入 devices.设备负责人 中未注册的假名"}
+    props: [anon_name, role, department_anon]
+
+  ChangeEvent:
+    cn: 变更事件
+    layer: process
+    source: {table: change_logs, id: id, label: "chg-<id>"}
+    props: [entity_table, entity_id, reason, status, batch_id, created_at]
+
+  ApprovalEvent:
+    cn: 审批事件
+    layer: process
+    source: {table: approval_requests, id: id, label: "apr-<id>"}
+    props: [action_type, entity_type, entity_id, status, current_phase, created_at]
+
+# ============ 关系类型 ============
+edge_types:
+  HAS_DEVICE:        {cn: 拥有设备,        from: Project,        to: Device,            source: devices.project_id}
+  BELONGS_TO_SYSTEM: {cn: 属于子系统,      from: Device,         to: ATASubsystem,      source: "devices.设备部件所属系统（4位ATA）"}
+  PART_OF_CHAPTER:   {cn: 隶属ATA章,       from: ATASubsystem,   to: ATAChapter,        source: derived}
+  LOCATED_IN_EDZ:    {cn: 位于电气设计区,  from: Device,         to: EDZ,               source: devices.EDZ}
+  HAS_SUBREGION:     {cn: 含分区,          from: Region,         to: Subregion,         source: subregions.region_id}
+  HAS_CONNECTOR:     {cn: 拥有连接器,      from: Device,         to: Connector,         source: connectors.device_id}
+  HAS_PIN:           {cn: 包含针孔,        from: Connector,      to: Pin,               source: pins.connector_id}
+  HAS_ENDPOINT:      {cn: 拥有端点,        from: Signal,         to: SignalEndpoint,    source: signal_endpoints.signal_id}
+  AT_DEVICE:         {cn: 端点落于设备,    from: SignalEndpoint, to: Device,            source: signal_endpoints.device_id}
+  AT_PIN:            {cn: 端点落于针孔,    from: SignalEndpoint, to: Pin,               source: signal_endpoints.pin_id}
+  SIGNAL_EDGE:       {cn: 信号逻辑边,      from: SignalEndpoint, to: SignalEndpoint,    source: signal_edges, props: [direction]}
+  IN_GROUP:          {cn: 归入信号分组,    from: Signal,         to: SignalGroup,       source: signals.signal_group}
+  POWERED_BY:        {cn: 由电源供电,      from: Signal,         to: PowerSource,       source: "signals.独立电源代码"}
+  GROUNDED_AS:       {cn: 接地类别为,      from: Signal,         to: GroundClass,       source: "signals.接地代码"}
+  IMPLEMENTS:        {cn: 物理实现信号,    from: Wire,           to: Signal,            source: wires.signal_id}
+  IN_HARNESS:        {cn: 归属线束,        from: Wire,           to: Harness,           source: wires.harness_id}
+  HARNESS_OF:        {cn: 线束属于型号,    from: Harness,        to: Project,           source: harnesses.project_id}
+  END_AT_PIN:        {cn: 导线端接于针孔,  from: Wire,           to: Pin,               source: wire_ends.pin_id, props: [end_idx, kind]}
+  END_AT_ICPIN:      {cn: 导线端接于互联点针, from: Wire,        to: InterconnectPin,   source: wire_ends.interconnect_pin_id, props: [end_idx, kind]}
+  HAS_ICPIN:         {cn: 互联点含针孔,    from: Interconnect,   to: InterconnectPin,   source: interconnect_pins.interconnect_id}
+  THROUGH_PAIR:      {cn: R/P面贯通,       from: InterconnectPin, to: InterconnectPin,  source: interconnect_pin_pairs}
+  IC_IN_EDZ:         {cn: 互联点属电气区,  from: Interconnect,   to: EDZ,               source: interconnects.edz}
+  IC_GROUND_CLASS:   {cn: 互联点接地类别,  from: Interconnect,   to: GroundClass,       source: interconnects.ground_class}
+  USES_ARRANGEMENT:  {cn: 采用型谱,        from: Interconnect,   to: Arrangement,       source: interconnects.arrangement_code}
+  HAS_POSITION:      {cn: 型谱含针位,      from: Arrangement,    to: ArrangementPosition, source: arrangement_positions.arrangement_code}
+  RESPONSIBLE_FOR:   {cn: 设备负责人,      from: Person,         to: Device,            source: "devices.设备负责人(假名匹配)"}
+  CHANGED:           {cn: 变更了实体,      from: ChangeEvent,    to: "Device|Connector|Pin|Signal|Wire|…", source: "change_logs.entity_table+entity_id"}
+  CHANGED_BY:        {cn: 变更人,          from: ChangeEvent,    to: Person,            source: change_logs.changed_by}
+  APPROVAL_FOR:      {cn: 审批针对实体,    from: ApprovalEvent,  to: "Device|Connector|Signal|…", source: "approval_requests.entity_type+entity_id"}
+  REQUESTED_BY:      {cn: 审批发起人,      from: ApprovalEvent,  to: Person,            source: approval_requests.requester_username}
+  GROUP_RULE:        {cn: 分组遵循规则,    from: SignalGroup,    to: SignalGroupType,   source: "signal_group 前缀匹配 signal_group_types.prefix"}
