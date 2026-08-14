@@ -7,3 +7,4 @@ etl/mapping_*
 __pycache__/
 docs/_*.json
 graph/*.jsonl
+graph/adapters/neo4j/
